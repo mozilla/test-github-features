@@ -1,0 +1,11 @@
+{
+  "name": "test-github-features",
+  "version": "1.0.0",
+  "description": "Repo to test github settings for PRs, CI, merging",
+  "main": "index.js",
+  "scripts": {
+    "build": "node ./build.mjs"
+  },
+  "author": "",
+  "license": "ISC"
+}
