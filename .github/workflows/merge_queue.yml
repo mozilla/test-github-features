@@ -1,12 +1,10 @@
 name: merge queueu
 on:
+  pull_request:
   merge_group:
-    types: [checks_requested]
-  push:
-    branches:
-      - gh-readonly-queue/main/*
 jobs:
   build:
+    if: ${{ github.event_name == 'merge_group' }}
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
