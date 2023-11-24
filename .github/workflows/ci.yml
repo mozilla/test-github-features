@@ -15,5 +15,5 @@ jobs:
     - name: Build
       run: npm run build
       env:
-        CI_DELAY: "20000"
+        CI_DELAY: "10000"
         CI_FAIL: ""
