@@ -3,7 +3,7 @@ on:
   pull_request:
   merge_group:
 jobs:
-  build:
+  merge_build:
     if: ${{ github.event_name == 'merge_group' }}
     runs-on: ubuntu-latest
     steps:
