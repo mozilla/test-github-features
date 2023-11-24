@@ -2,7 +2,7 @@ name: ci build
 on:
   pull_request:
 jobs:
-  build:
+  ci_build:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
