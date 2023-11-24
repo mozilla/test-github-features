@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-const delay = parseInt(process.env.CI_DELAY || 1_000, 10);
+const delay = parseInt(process.env.CI_DELAY || 10_000, 10);
 const shouldFail = Boolean(process.env.CI_FAIL || '');
 
 console.log('config', {delay, shouldFail, raw: { delay: process.env.CI_DELAY, shouldFail: process.env.CI_FAIL}});
