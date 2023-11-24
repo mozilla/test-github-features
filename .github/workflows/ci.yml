@@ -1,8 +1,9 @@
 name: ci build
 run-name: ${{ github.actor }} is learning GitHub Actions
 on:
-  pull_request:
+  # pull_request:
   merge_group:
+    types: [checks_requested]
 jobs:
   build:
     runs-on: ubuntu-latest
