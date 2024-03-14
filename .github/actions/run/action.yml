@@ -36,7 +36,7 @@ runs:
         cat <<EOF > root.sh
         #!/bin/bash
         whoami
-        su -s /bin/bash -c './exec.sh' olympia
+        su -s /bin/bash -c './exec.sh' nonroot
         EOF
 
         # Make both files executable
