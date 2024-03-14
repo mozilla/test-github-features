@@ -23,11 +23,12 @@ COPY --chown=nonroot --from=base /app/package.json /app/package.json
 
 RUN npm i --omit=dev --no-save
 
-USER nonroot
-
 RUN chown -R nonroot /app
 
+USER nonroot
+
 EXPOSE 3000
+
 
 CMD ["npm", "run", "start"]
 
