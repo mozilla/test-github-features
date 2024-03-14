@@ -13,6 +13,17 @@ inputs:
 runs:
   using: 'composite'
   steps:
+    - name: Validate inputs
+      shell: bash
+      run: |
+        if [[ -z "${{ inputs.image }}" ]]; then
+          echo "Image is required"
+          exit 1
+        fi
+        if [[ -z "${{ inputs.run }}" ]]; then
+          echo "Run is required"
+          exit 1
+        fi
     - name: Run Docker Container
       shell: bash
       run: |
