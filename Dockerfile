@@ -1,7 +1,8 @@
 FROM node:18 as base
 
+
 WORKDIR /app
-COPY --chown=node package*.json /app/
+COPY package*.json /app/
 
 RUN /bin/bash <<EOF
 npm install
@@ -22,6 +23,7 @@ COPY --from=base /app/package.json /app/package.json
 RUN npm i --omit=dev --no-save
 
 EXPOSE 3000
+
 
 CMD ["npm", "run", "start"]
 

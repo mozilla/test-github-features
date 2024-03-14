@@ -13,6 +13,17 @@ inputs:
 runs:
   using: 'composite'
   steps:
+    - name: Validate inputs
+      shell: bash
+      run: |
+        if [[ -z "${{ inputs.image }}" ]]; then
+          echo "Image is required"
+          exit 1
+        fi
+        if [[ -z "${{ inputs.run }}" ]]; then
+          echo "Run is required"
+          exit 1
+        fi
     - name: Run Docker Container
       shell: bash
       run: |
@@ -25,7 +36,7 @@ runs:
         cat <<EOF > root.sh
         #!/bin/bash
         whoami
-        su -s /bin/bash -c './exec.sh' olympia
+        su -s /bin/bash -c './exec.sh' root
         EOF
 
         # Make both files executable

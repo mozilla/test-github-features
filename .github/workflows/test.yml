@@ -7,21 +7,27 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - uses: ./.github/actions/build
+      id: build
     - name: Test
       uses: ./.github/actions/run
       with:
+        image: ${{ steps.build.outputs.tags }}
         run: |
           echo "Testing"
+          npm ci
           npm run test
   lint:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
     - uses: ./.github/actions/build
+      id: build
     - name: Lint
       uses: ./.github/actions/run
       with:
+        image: ${{ steps.build.outputs.tags }}
         run: |
           echo "Linting"
+          npm ci
           npm run lint
 
