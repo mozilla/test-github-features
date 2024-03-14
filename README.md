@@ -1,6 +1,8 @@
 # test-github-features
 Repo to test github settings for PRs, CI, merging
 
+testing
+
 ## Bypassing branch protection
 
 You can easily bypass branch protection rules with ruleset bypass. This will give the option to merge PRs without waiting for checks.
