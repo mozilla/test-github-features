@@ -36,7 +36,7 @@ runs:
         cat <<EOF > root.sh
         #!/bin/bash
         whoami
-        su -s /bin/bash -c './exec.sh' nonroot
+        su -s /bin/bash -c './exec.sh' root
         EOF
 
         # Make both files executable
