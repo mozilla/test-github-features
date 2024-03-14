@@ -2,7 +2,7 @@ name: 'Docker Build'
 description: 'Builds docker image'
 inputs:
   push:
-    required: false
+    required: true
     description: "Build and push image to registry (cannot be used together with load)"
     default: "false"
 
