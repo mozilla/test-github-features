@@ -1,0 +1,47 @@
+name: 'Docker Run Action'
+description: 'Run a command in a new container'
+inputs:
+  image:
+    description: "The Docker image to run"
+    required: true
+  options:
+    description: 'Options'
+    required: false
+  run:
+    description: 'Run command in container'
+    required: true
+runs:
+  using: 'composite'
+  steps:
+    - name: Run Docker Container
+      shell: bash
+      run: |
+        cat <<EOF > exec.sh
+        #!/bin/bash
+        whoami
+        ${{ inputs.run }}
+        EOF
+
+        cat <<EOF > root.sh
+        #!/bin/bash
+        whoami
+        su -s /bin/bash -c './exec.sh' olympia
+        EOF
+
+        # Make both files executable
+        chmod +x exec.sh
+        chmod +x root.sh
+
+        # Debug info
+        echo "############"
+        cat root.sh
+        echo "############"
+        echo "############"
+        cat exec.sh
+        echo "############"
+
+        # Execute inside docker container
+        cat root.sh | docker run ${{ inputs.options }} \
+          -i --rm -u 0 \
+          -v $(pwd):/app \
+          ${{ inputs.image }} bash

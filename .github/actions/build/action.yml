@@ -1,0 +1,68 @@
+name: 'Docker Build'
+description: 'Builds docker image'
+inputs:
+  push:
+    required: false
+    description: "Build and push image to registry (cannot be used together with load)"
+    default: "false"
+
+outputs:
+  tags:
+    description: "The Docker tags for the image"
+    value: ${{ steps.meta.outputs.tags }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Validate inputs
+      shell: bash
+      run: |
+        if [[ "${{ inputs.push  }}" == "true" && "${{ github.ref }}" == "refs/heads/master" ]]; then
+          echo "Cannot push to registry from master branch unless we migrate our master build job to GHA."
+          exit 1
+        fi
+    # Setup docker to build for multiple architectures
+    - name: Set up QEMU
+      uses: docker/setup-qemu-action@v3
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v1
+      with:
+        version: latest
+        buildkitd-flags: --debug
+
+    # Login to a registry to push the image
+    - name: Login to Container Registry
+      # Only login if we are pushing the image
+      if: ${{ inputs.push == 'true' }}
+      uses: docker/login-action@v3
+      with:
+        registry: 'ghcr.io'
+
+    # Determine the tags for the image
+    - name: Docker meta
+      id: meta
+      uses: docker/metadata-action@v5
+      with:
+        # Hard coding our dockerhub imnage name
+        images: mozilla/test-github-features
+        tags: |
+          type=schedule
+          type=ref,event=tag
+          type=ref,event=branch
+          type=ref,event=pr
+          # set latest tag for default branch
+          # Disabled for now as we do not use this action for
+          # The production build
+          # type=raw,value=latest,enable={{is_default_branch}}
+
+    - name: Build Image
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        platforms: linux/amd64
+        pull: true
+        push: ${{ inputs.push }}
+        load: ${{ inputs.push == 'false' }}
+        tags: ${{ steps.meta.outputs.tags }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max

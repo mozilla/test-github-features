@@ -1,0 +1,27 @@
+name: Test
+on:
+  pull_request:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: ./.github/actions/build
+    - name: Test
+      uses: ./.github/actions/run
+      with:
+        run: |
+          echo "Testing"
+          npm run test
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: ./.github/actions/build
+    - name: Lint
+      uses: ./.github/actions/run
+      with:
+        run: |
+          echo "Linting"
+          npm run lint
+
