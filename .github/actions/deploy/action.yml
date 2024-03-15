@@ -1,12 +1,12 @@
 name: 'Deploy to fly'
 description: 'Deploys a published image to fly'
 inputs:
+  environment:
+    required: true
+    description: "Which environment to deploy to"
   image:
     required: true
     description: "Which image to deploy"
-  config:
-    required: true
-    description: "Path to a fly.toml file"
   token:
     required: true
     description: "Access token for flyctl"
@@ -14,12 +14,28 @@ inputs:
 runs:
   using: 'composite'
   steps:
+    - id: config_path
+      shell: bash
+      run: |
+        config_path=${{ github.workspace }}/fly-${{ inputs.environment}}.toml
+
+        if [ ! -f "$config_path" ]; then
+          echo "Could not find config file at $config_path"
+          exit 1
+        fi
+
+        echo "path=$config_path" >> $GITHUB_OUTPUT
+    - name: Notify (attempt)
+      uses: ./.github/actions/slack
+      with:
+        message: "deploying ${{ inputs.image }} to ${{ inputs.environment }} :rocket:"
+        webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
     - name: Deploy flyctl
       shell: bash
       run: |
         docker run \
           --rm \
-          -v ${{ inputs.config }}:/workspace/fly.toml \
+          -v ${{ steps.config_path.outputs.path}}:/workspace/fly.toml \
           --workdir /workspace \
           ghcr.io/superfly/flyctl:latest \
           deploy \
@@ -28,3 +44,16 @@ runs:
             -i ${{ inputs.image }} \
             --yes \
             --verbose
+    - name: Notify (scuccessful deployment)
+      if: success()
+      uses: ./.github/actions/slack
+      with:
+        message: ":tada: Successfully deployed ${{ inputs.image }} to ${{ inputs.environment }} :white_check_mark:!"
+        webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
+    - name: Notify (failed deployment)
+      if: failure()
+      uses: ./.github/actions/slack
+      with:
+        message: ":fail: Failed to deploy to ${{ inputs.environment }} :red_flag:!"
+        webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
+
