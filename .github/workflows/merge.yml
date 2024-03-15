@@ -29,15 +29,19 @@ jobs:
           app: ${{ env.environment }}
           token: ${{ secrets.FLY_TOKEN }}
           image: ${{ steps.build.outputs.tags }}
+      - id: pr_url
+        shell: bash
+        run: |
+          echo "url=${{ github.repositoryUrl }}/pull/${{ github.event.pull_request.number }}" >> $GITHUB_OUTPUT
       - name: Notify (scuccessful deployment)
         if: success()
         uses: ./.github/actions/slack
         with:
-          message: ":tada: Successfully deployed to ${{ env.environment }} :white_check_mark:!"
+          message: ":tada: Successfully deployed to ${{ env.environment }} :white_check_mark:! <${{ steps.pr_url.outputs.url }}>"
           webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
       - name: Notify (failed deployment)
         if: failure()
         uses: ./.github/actions/slack
         with:
-          message: ":fail: Failed to deploy to ${{ env.environment }} :red_flag:!"
+          message: ":fail: Failed to deploy to ${{ env.environment }} :red_flag:! <${{ steps.pr_url.outputs.url }}>"
           webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
