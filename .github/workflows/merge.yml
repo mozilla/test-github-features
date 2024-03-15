@@ -33,11 +33,11 @@ jobs:
         if: success()
         uses: ./.github/actions/slack
         with:
-          message: ":tada: Deployed to ${{ env.environment }} :white_check_mark: successfully!"
+          message: ":tada: Successfully deployed to ${{ env.environment }} :white_check_mark:!"
           webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
       - name: Notify (failed deployment)
         if: failure()
         uses: ./.github/actions/slack
         with:
-          message: ":fail: Failed to deploy to ${{ env.environment }} :red_flag: successfully!"
+          message: ":fail: Failed to deploy to ${{ env.environment }} :red_flag:!"
           webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
