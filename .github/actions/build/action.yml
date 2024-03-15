@@ -39,20 +39,39 @@ runs:
         username: ${{ inputs.username }}
         password: ${{ inputs.password }}
 
-    # Determine the tags for the image
+    - name: Docker Tag
+      id: tag
+      shell: bash
+      run: |
+        function export_tag() {
+          echo "tag=$1" >> $GITHUB_OUTPUT
+          exit 0
+        }
+
+        if [[ ${{ github.event_name }} == 'pull_request' ]]; then
+          export_tag "type=ref,event=pr"
+        elif [[ ${{ github.event_name }} == 'merge_group' ]]; then
+          export_tag "type=raw,value=staging"
+        elif [[ ${{ github.event_name }} == 'push' ]]; then
+          if [[ ${{ github.ref }} == 'refs/heads/main' ]]; then
+            export_tag "type=raw,value=latest"
+          else
+            export_tag "type=sha"
+          fi
+        fi
+
+        echo "No tag found, exiting."
+        echo "event_name: ${{ github.event_name }}"
+        echo "ref: ${{ github.ref }}"
+
+        exit 1
+
     - name: Docker meta
       id: meta
       uses: docker/metadata-action@v5
       with:
-        # Hard coding our dockerhub imnage name
         images: ghcr.io/mozilla/test-github-features
-        tags: |
-          type=schedule
-          type=ref,event=tag
-          type=ref,event=branch,enable=${{ github.ref != 'refs/heads/main' }}
-          type=ref,event=pr
-          type=raw,value=latest,enable={{is_default_branch}}
-          type=raw,value=staging,enable=${{ contains(github.event.head_ref, 'gh-readonly-queue/main') }}
+        tags: ${{ steps.tag.outputs.tag }}
 
     - name: Build Image
       uses: docker/build-push-action@v5
