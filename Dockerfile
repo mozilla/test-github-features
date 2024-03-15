@@ -13,6 +13,10 @@ RUN \
 
 FROM base as final
 
+ARG VERSION="base"
+
+ENV VERSION=${VERSION}
+
 COPY --from=base /app/dist /app/dist
 COPY package.json /app/package.json
 

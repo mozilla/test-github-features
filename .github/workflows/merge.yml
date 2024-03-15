@@ -23,10 +23,10 @@ jobs:
           username: ${{ github.actor}}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Deploy to (${{ env.environment }})
+      - name: Deploy to (staging)
         uses: ./.github/actions/deploy
         with:
-          app: ${{ env.environment }}
+          config: ${{ github.workspace }}/fly-${{ env.environment }}.toml
           token: ${{ secrets.FLY_TOKEN }}
           image: ${{ steps.build.outputs.tags }}
       - id: pr_url

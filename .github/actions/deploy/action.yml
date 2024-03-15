@@ -4,20 +4,27 @@ inputs:
   image:
     required: true
     description: "Which image to deploy"
-  app:
+  config:
     required: true
-    description: "Which environment to deploy to"
+    description: "Path to a fly.toml file"
   token:
     required: true
     description: "Access token for flyctl"
 
 runs:
-  using: 'docker'
-  image: ghcr.io/superfly/flyctl:latest
-  args:
-    - deploy
-    - -t ${{ inputs.token }}
-    - -i ${{ inputs.image }}
-    - -a ${{ inputs.app }}
-    - --yes
-    - --verbose
+  using: 'composite'
+  steps:
+    - name: Deploy flyctl
+      shell: bash
+      run: |
+        docker run \
+          --rm \
+          -v ${{ inputs.config }}:/workspace/fly.toml \
+          --workdir /workspace \
+          ghcr.io/superfly/flyctl:latest \
+          deploy \
+            -t ${{ inputs.token }} \
+            -c /workspace/fly.toml \
+            -i ${{ inputs.image }} \
+            --yes \
+            --verbose
