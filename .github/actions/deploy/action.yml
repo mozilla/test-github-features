@@ -10,6 +10,9 @@ inputs:
   token:
     required: true
     description: "Access token for flyctl"
+  slack_webhook_url:
+    required: true
+    description: "Webhook URL for slack"
 
 runs:
   using: 'composite'
