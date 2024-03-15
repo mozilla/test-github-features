@@ -1,10 +1,11 @@
-import express, { Express } from "express";
-
-const version = process.env.VERSION || "not defined on environment";
+import express from "express";
 
 const app = express();
 
-app.get('/', (req, res) => res.json({ version }));
+const version = process.env.VERSION || "not defined on environment";
+app.set("version", version);
+
+app.get('/', (_, res) => res.json({ version: app.get('version') }));
 
 app.get("/:number", (req, res) => {
 	const number = parseFloat(req.params.number);
@@ -13,13 +14,7 @@ app.get("/:number", (req, res) => {
 	}
 
 	const squareRoot = Math.sqrt(number);
-	res.json({ square_root: squareRoot, version });
+	res.json({ square_root: squareRoot });
 });
-
-export function startServer(server: Express, port = 3000) {
-	server.listen(port, () => {
-		console.log(`Server is running at http://localhost:${port}`);
-	});
-}
 
 export default app;
