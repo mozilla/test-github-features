@@ -18,18 +18,22 @@ jobs:
           echo "event_name: ${{ github.event_name }}"
           echo "ref: ${{ github.ref }}"
 
+          environment=""
+          url=""
+
           if [[ "${{ github.event_name }}" == 'push' ]]; then
-            echo "environment=production" >> $GITHUB_OUTPUT
-            echo "url=https://test-github-features.fly.dev" >> $GITHUB_OUTPUT
+            environment=production"
+            url=https://test-github-features.fly.dev"
           elif [[ "${{ github.event_name }}" == 'merge_group' ]]; then
-            echo "environment=staging" >> $GITHUB_OUTPUT
-            echo "url=https://test-github-features-staging.fly.dev" >> $GITHUB_OUTPUT
+            environment=staging"
+            url=https://test-github-features-staging.fly.dev"
           elif [[ "${{ github.event_name }}" == 'workflow_dispatch' ]]; then
-            echo "environment=development" >> $GITHUB_OUTPUT
-            echo "url=https://test-github-features-staging.fly.dev" >> $GITHUB_OUTPUT
+            environment=development"
+            url=https://test-github-features-staging.fly.dev"
           fi
 
-          echo "environment=\"${{ steps.environment.outputs.environment }}\""
+          echo "environment=$environment" >> $GITHUB_OUTPUT
+          echo "url=$url" >> $GITHUB_OUTPUT
   deploy:
     needs: environment
     if: ${{ needs.environment.outputs.environment }}
