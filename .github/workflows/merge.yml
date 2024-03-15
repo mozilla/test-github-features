@@ -21,6 +21,12 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
+      - id: build
+        uses: ./.github/actions/build
+        with:
+          push: true
+          username: ${{ github.actor}}
+          password: ${{ secrets.GITHUB_TOKEN }}
       - name: Deploy to staging
         run: |
           echo "Deploying to staging"

@@ -16,8 +16,13 @@ jobs:
   deploy_production:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v2
+      - uses: actions/checkout@v2
+      - id: build
+        uses: ./.github/actions/build
+        with:
+          push: true
+          username: ${{ github.actor}}
+          password: ${{ secrets.GITHUB_TOKEN }}
       - name: Deploy to production
         run: |
           echo "Deploying to production"
