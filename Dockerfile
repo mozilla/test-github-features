@@ -1,24 +1,20 @@
 FROM node:18 as base
 
-
 WORKDIR /app
-COPY package*.json /app/
 
-RUN /bin/bash <<EOF
-npm install
-EOF
+RUN --mount=type=bind,src=package.json,dst=/app/package.json \
+  npm install
 
-FROM base as builder
-
-COPY --from=base /app/node_modules /app/node_modules
-COPY src package.json tsconfig.json /app/
-
-RUN npm run build
+RUN \
+  --mount=type=bind,src=package.json,dst=/app/package.json \
+  --mount=type=bind,src=src,dst=/app/src/ \
+  --mount=type=bind,src=tsconfig.json,dst=/app/tsconfig.json \
+  npm run build
 
 FROM base as final
 
-COPY --from=builder /app/dist /app/dist
-COPY --from=base /app/package.json /app/package.json
+COPY --from=base /app/dist /app/dist
+COPY package.json /app/package.json
 
 RUN npm i --omit=dev --no-save
 
