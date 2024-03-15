@@ -66,9 +66,3 @@ runs:
         tags: ${{ steps.meta.outputs.tags }}
         cache-from: type=gha
         cache-to: type=gha,mode=max
-
-    - name: Notify
-      if: ${{ inputs.push == 'true' }} && ${{ success() }}
-      uses: ./.github/actions/slack
-      with:
-        message: "Image built and pushed to ghcr.io/mozilla/test-github-features:${{ steps.meta.outputs.tags }}"

@@ -3,6 +3,11 @@ name: Build
 on:
   create:
   workflow_dispatch:
+    inputs:
+      push:
+        description: 'Push to registry'
+        required: false
+        default: 'false'
 
 jobs:
   ci_build:
@@ -10,5 +15,13 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - name: Build
+      id: build
       uses: ./.github/actions/build
+      with:
+        push: ${{ github.event.inputs.push }}
+    - name: Notify
+      if: ${{ github.event_name == 'workflow_dispatch' }} && ${{ inputs.push == 'true' }} && ${{ success() }}
+      uses: ./.github/actions/slack
+      with:
+        message: "Image built and pushed to ghcr.io/mozilla/test-github-features:${{ steps.build.outputs.tags }}"
 
