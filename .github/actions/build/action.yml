@@ -47,12 +47,10 @@ runs:
         # Hard coding our dockerhub imnage name
         images: ghcr.io/mozilla/test-github-features
         tags: |
-          type=schedule
-          type=ref,event=tag
-          type=ref,event=branch,enable=${{ github.ref != 'refs/heads/main' }}
           type=ref,event=pr
-          type=raw,value=latest,enable={{is_default_branch}}
-          type=raw,value=staging,enable=${{ contains(github.event.head_ref, 'gh-readonly-queue/main') }}
+          type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
+          type=raw,value=staging,enable=${{ github.event_name == 'merge_queue'}}
+          type=sha,priority=100,prefix=sha-,suffix=,format=short,enable=${{ github.event_name == 'push' && github.ref != 'refs/heads/main'}}
 
     - name: Build Image
       uses: docker/build-push-action@v5
