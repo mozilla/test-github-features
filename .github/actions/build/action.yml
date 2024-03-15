@@ -49,11 +49,8 @@ runs:
         tags: |
           type=schedule
           type=ref,event=tag
-          type=ref,event=branch
+          type=ref,event=branch,enable: ${{ github.ref != 'refs/heads/main' }}
           type=ref,event=pr
-          # set latest tag for default branch
-          # Disabled for now as we do not use this action for
-          # The production build
           type=raw,value=latest,enable={{is_default_branch}}
           type=raw,value=staging,enable=${{ contains(github.event.head_ref, 'gh-readonly-queue-main') }}
 
