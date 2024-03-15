@@ -13,12 +13,12 @@ inputs:
     description: "Access token for flyctl"
 
 runs:
-  using: "composite"
-  steps:
-    - name: Deploy to fly
-      shell: bash
-      run: |
-        flyctl deploy \
+  using: 'docker'
+  image: ghcr.io/superfly/flyctl:latest
+  args:
+    - /bin/sh
+    - -c
+    - flyctl deploy \
           -t ${{ inputs.token }}  \
           -i ${{ inputs.image }} \
           -a ${{ inputs.app }} \
