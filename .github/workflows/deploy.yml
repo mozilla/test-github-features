@@ -1,23 +1,40 @@
-name: Push
+name: Deploy
 
 on:
+  workflow_dispatch:
+  merge_group:
+  pull_request:
   push:
     branches:
       - main
 
-env:
-  environment: production
-
 jobs:
-  log:
+  environment:
     runs-on: ubuntu-latest
     steps:
-      - name: Log event
+      - id: environment
+        shell: bash
         run: |
-          echo "json: ${{ github }}"
-          printenv
-  deploy_production:
+          if [[ ${{ github.event_name }} == 'push' ]]; then
+            echo "environment=production" >> $GITHUB_OUTPUT
+            echo "url=https://test-github-features.fly.dev" >> $GITHUB_OUTPUT
+          elif [[ ${{ github.event_name }} == 'merge_group' ]]; then
+            echo "environment=staging" >> $GITHUB_OUTPUT
+            echo "url=https://test-github-features-staging.fly.dev" >> $GITHUB_OUTPUT
+          elif [[ ${{ github.event_name }} == 'workflow_dispatch' ]]; then
+            echo "environment=development" >> $GITHUB_OUTPUT
+            echo "url=https://test-github-features-staging.fly.dev" >> $GITHUB_OUTPUT
+          fi
+  deploy:
+    needs: environment
+    if: ${{ needs.environment.outputs.environment }}
+    environment:
+      name: ${{ needs.environment.outputs.environment }}
+      url: ${{ needs.environment.outputs.environment }}.example.com
     runs-on: ubuntu-latest
+    concurrency:
+      group: ${{ github.event_name }}
+      cancel-in-progress: true
     steps:
       - uses: actions/checkout@v2
       - id: build
@@ -27,10 +44,10 @@ jobs:
           username: ${{ github.actor}}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Deploy to (production)
+      - name: Deploy
         uses: ./.github/actions/deploy
         with:
-          config: ${{ github.workspace }}/fly-${{ env.environment }}.toml
+          config: ${{ github.workspace }}/fly-${{ needs.environment.outputs.environment}}.toml
           token: ${{ secrets.FLY_TOKEN }}
           image: ${{ steps.build.outputs.tags }}
       - id: pr_url
