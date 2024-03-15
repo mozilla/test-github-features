@@ -29,6 +29,6 @@ jobs:
       if: ${{ inputs.push == 'true' }} && ${{ success() }}
       uses: ./.github/actions/slack
       with:
-        message: "Image built and pushed to <${{ steps.build.outputs.tags }}>"
+        message: "Image built and pushed to [${{ steps.build.outputs.tags }}](${{ steps.build.outputs.tags }})"
         webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
 
