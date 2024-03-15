@@ -7,6 +7,13 @@ on:
       - main
 
 jobs:
+  log:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Log event
+        run: |
+          echo "json: ${{ github }}"
+          printenv
   deploy_staging:
     if: ${{ github.event_name == 'merge_group' }}
     runs-on: ubuntu-latest
