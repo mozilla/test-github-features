@@ -4,9 +4,9 @@ inputs:
   image:
     required: true
     description: "Which image to deploy"
-  app:
+  config:
     required: true
-    description: "Which environment to deploy to"
+    description: "Path to a fly.toml file"
   token:
     required: true
     description: "Access token for flyctl"
@@ -17,7 +17,6 @@ runs:
   args:
     - deploy
     - -t ${{ inputs.token }}
-    - -i ${{ inputs.image }}
-    - -a ${{ inputs.app }}
+    - -c ${{ inputs.config }}
     - --yes
     - --verbose
