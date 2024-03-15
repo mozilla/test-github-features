@@ -26,4 +26,5 @@ jobs:
       uses: ./.github/actions/slack
       with:
         message: "Image built and pushed to ghcr.io/mozilla/test-github-features:${{ steps.build.outputs.tags }}"
+        webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
 
