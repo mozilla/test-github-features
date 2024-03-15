@@ -10,7 +10,7 @@ on:
         default: 'false'
 
 jobs:
-  ci_build:
+  build:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
@@ -19,6 +19,8 @@ jobs:
       uses: ./.github/actions/build
       with:
         push: ${{ github.event.inputs.push }}
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
     - name: Notify
       if: ${{ github.event_name == 'workflow_dispatch' }} && ${{ inputs.push == 'true' }} && ${{ success() }}
       uses: ./.github/actions/slack
