@@ -2,11 +2,6 @@ name: Publish
 
 on:
   workflow_dispatch:
-    inputs:
-      push:
-        description: 'Push to registry'
-        required: false
-        default: 'false'
 
 permissions:
   contents: read
