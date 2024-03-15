@@ -4,6 +4,7 @@ on:
   merge_group:
 jobs:
   test:
+    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
@@ -18,6 +19,7 @@ jobs:
           npm ci
           npm run test
   lint:
+    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4

@@ -61,7 +61,7 @@ runs:
           # set latest tag for default branch
           # Disabled for now as we do not use this action for
           # The production build
-          # type=raw,value=latest,enable={{is_default_branch}}
+          type=raw,value=latest,enable={{is_default_branch}}
 
     - name: Build Image
       uses: docker/build-push-action@v5
