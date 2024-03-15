@@ -30,7 +30,7 @@ jobs:
       - name: Deploy to (${{ env.environment }})
         uses: ./.github/actions/deploy
         with:
-          app: ${{ env.environment }}
+          config: fly-${{ env.environment }}.toml
           token: ${{ secrets.FLY_TOKEN }}
           image: ${{ steps.build.outputs.tags }}
       - name: Notify (scuccessful deployment)

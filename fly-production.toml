@@ -1,0 +1,23 @@
+# fly.toml app configuration file generated for test-github-features on 2024-03-15T14:26:09+01:00
+#
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
+
+app = 'test-github-features'
+primary_region = 'ams'
+
+[build]
+  image = 'ghcr.io/mozilla/test-github-features:latest'
+
+[http_service]
+  internal_port = 3000
+  force_https = true
+  auto_stop_machines = true
+  auto_start_machines = true
+  min_machines_running = 0
+  processes = ['app']
+
+[[vm]]
+  memory = '1gb'
+  cpu_kind = 'shared'
+  cpus = 1
