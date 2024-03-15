@@ -7,7 +7,10 @@ inputs:
   channel:
     description: "The channel to send the message to"
     required: false
-    default: "slackapi/slack-github-action@v1"
+    default: "test-github-features"
+  webhook_url:
+    description: "The webhook url to use"
+    required: true
 runs:
   using: 'composite'
   steps:
@@ -16,3 +19,5 @@ runs:
       with:
         channel-id: ${{ inputs.channel }}
         slack-message: ${{ inputs.message }}
+      env:
+        SLACK_WEBHOOK_URL: ${{ inputs.webhook_url }}

@@ -10,3 +10,4 @@ jobs:
       - uses: ./.github/actions/slack
         with:
           message: 'Hello from GitHub Actions! :tada:'
+          webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
