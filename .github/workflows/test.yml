@@ -10,7 +10,7 @@ jobs:
     - uses: ./.github/actions/deploy
       with:
         image: ghcr.io/mozilla/test-github-features:latest
-        config: fly-staging.toml
+        config: ${{ github.workspace }}/fly-staging.toml
         token: ${{ secrets.FLY_TOKEN }}
 
   test:

@@ -30,7 +30,7 @@ jobs:
       - name: Deploy to (production)
         uses: ./.github/actions/deploy
         with:
-          config: fly-${{ env.environment }}.toml
+          config: ${{ github.workspace }}/fly-${{ env.environment }}.toml
           token: ${{ secrets.FLY_TOKEN }}
           image: ${{ steps.build.outputs.tags }}
       - id: pr_url
