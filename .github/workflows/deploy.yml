@@ -39,7 +39,7 @@ jobs:
           echo "url=$url" >> $GITHUB_OUTPUT
   deploy:
     needs: environment
-    if: ${{ needs.environment.outputs.environment }}
+    if: ${{ needs.environment.outputs.environment != '' }}
     environment:
       name: ${{ needs.environment.outputs.environment }}
       url: ${{ needs.environment.outputs.environment }}.example.com
