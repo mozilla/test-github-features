@@ -18,5 +18,6 @@ runs:
     - deploy
     - -t ${{ inputs.token }}
     - -c ${{ inputs.config }}
+    - -i ${{ inputs.image }}
     - --yes
     - --verbose
