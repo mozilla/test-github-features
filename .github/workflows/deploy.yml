@@ -32,6 +32,9 @@ jobs:
             url=https://test-github-features-staging.fly.dev"
           fi
 
+          echo "environment=$environment"
+          echo "url=$url"
+
           echo "environment=$environment" >> $GITHUB_OUTPUT
           echo "url=$url" >> $GITHUB_OUTPUT
   deploy:
