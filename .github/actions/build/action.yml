@@ -52,7 +52,7 @@ runs:
       uses: docker/metadata-action@v5
       with:
         # Hard coding our dockerhub imnage name
-        images: mozilla/test-github-features
+        images: ghcr.io/mozilla/test-github-features
         tags: |
           type=schedule
           type=ref,event=tag
@@ -71,6 +71,6 @@ runs:
         pull: true
         push: ${{ inputs.push }}
         load: ${{ inputs.push == 'false' }}
-        tags: ghcr.io/${{ steps.meta.outputs.tags }}
+        tags: ${{ steps.meta.outputs.tags }}
         cache-from: type=gha
         cache-to: type=gha,mode=max
