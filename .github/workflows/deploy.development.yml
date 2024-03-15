@@ -1,0 +1,33 @@
+name: Deploy (development)
+
+on:
+  workflow_dispatch:
+
+env:
+  environment: development
+  url: https://test-github-features-development.fly.dev
+
+jobs:
+  deploy_development:
+    runs-on: ubuntu-latest
+    environment:
+      name: ${{ github.env.environment }}
+      url: ${{ github.env.url }}
+    concurrency:
+      group: ${{ github.env.environment }}
+      cancel-in-progress: true
+    steps:
+      - uses: actions/checkout@v2
+      - id: build
+        uses: ./.github/actions/build
+        with:
+          push: true
+          username: ${{ github.actor}}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Deploy
+        uses: ./.github/actions/deploy
+        with:
+          environment: ${{ github.env.environment }}
+          token: ${{ secrets.FLY_TOKEN }}
+          image: ${{ steps.build.outputs.tags }}
