@@ -49,7 +49,7 @@ runs:
         tags: |
           type=schedule
           type=ref,event=tag
-          type=ref,event=branch,enable: ${{ github.ref != 'refs/heads/main' }}
+          type=ref,event=branch,enable=${{ github.ref != 'refs/heads/main' }}
           type=ref,event=pr
           type=raw,value=latest,enable={{is_default_branch}}
           type=raw,value=staging,enable=${{ contains(github.event.head_ref, 'gh-readonly-queue/main') }}
