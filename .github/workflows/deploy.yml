@@ -18,13 +18,13 @@ jobs:
           echo "event_name: ${{ github.event_name }}"
           echo "ref: ${{ github.ref }}"
 
-          if [[ ${{ github.event_name }} == 'push' ]]; then
+          if [[ "${{ github.event_name }}" == 'push' ]]; then
             echo "environment=production" >> $GITHUB_OUTPUT
             echo "url=https://test-github-features.fly.dev" >> $GITHUB_OUTPUT
-          elif [[ ${{ github.event_name }} == 'merge_group' ]]; then
+          elif [[ "${{ github.event_name }}" == 'merge_group' ]]; then
             echo "environment=staging" >> $GITHUB_OUTPUT
             echo "url=https://test-github-features-staging.fly.dev" >> $GITHUB_OUTPUT
-          elif [[ ${{ github.event_name }} == 'workflow_dispatch' ]]; then
+          elif [[ "${{ github.event_name }}" == 'workflow_dispatch' ]]; then
             echo "environment=development" >> $GITHUB_OUTPUT
             echo "url=https://test-github-features-staging.fly.dev" >> $GITHUB_OUTPUT
           fi
