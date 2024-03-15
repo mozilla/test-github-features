@@ -1,21 +1,29 @@
 import request from "supertest";
-import { describe, it } from "vitest";
-import app from "./server";
+import { describe, it, beforeEach } from "vitest";
 import assert from "assert";
+
+import app from './server';
+
 describe('GET /', () => {
-	it('should return default version if none is defined on environment', async () => {
-		const expectedResponse = { version: "not defined on environment" };
+	beforeEach(() => {
+		app.set('version', 'test')
+	});
+
+	it('should return the version based on config', async () => {
+		const expectedVersion = "1.0.0";
+		app.set('version', expectedVersion);
+		const expectedResponse = { version: expectedVersion };
+
 		const response = await request(app).get('/').expect(200);
+
 		assert.deepStrictEqual(response.body, expectedResponse);
 	});
 
-	it('should return the version defined on environment', async () => {
-		const expectedVersion = "1.0.0";
-		const expectedResponse = { version: expectedVersion };
+	it('should return default version if none is defined on environment', async () => {
+		const expectedResponse = { version: "test" };
 
-		const newApp = (await import('./server')).default;
-		newApp.set('version', expectedVersion);
-		const response = await request(newApp).get('/').expect(200);
+		const response = await request(app).get('/').expect(200);
+
 		assert.deepStrictEqual(response.body, expectedResponse);
 	});
 })
@@ -27,7 +35,6 @@ describe("GET /:number", () => {
 		const response = await request(app).get(`/${number}`).expect(200);
 
 		const {square_root } = response.body;
-
 		assert.deepStrictEqual(square_root, expectedResponse);
 	});
 });

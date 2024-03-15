@@ -2,9 +2,6 @@ import express from "express";
 
 const app = express();
 
-const version = process.env.VERSION || "not defined on environment";
-app.set("version", version);
-
 app.get('/', (_, res) => res.json({ version: app.get('version') }));
 
 app.get("/:number", (req, res) => {
