@@ -55,7 +55,7 @@ runs:
           # Disabled for now as we do not use this action for
           # The production build
           type=raw,value=latest,enable={{is_default_branch}}
-          type=raw,value=staging,enable={{contains(github.event.head_ref, 'gh-readonly-queue-main')}};
+          type=raw,value=staging,enable=${{ contains(github.event.head_ref, 'gh-readonly-queue-main') }}
 
     - name: Build Image
       uses: docker/build-push-action@v5
