@@ -15,7 +15,6 @@ runs:
   using: 'docker'
   image: ghcr.io/superfly/flyctl:latest
   args:
-    - flyctl
     - deploy
     - -t ${{ inputs.token }}
     - -i ${{ inputs.image }}
