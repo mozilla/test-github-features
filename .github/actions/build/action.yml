@@ -71,6 +71,6 @@ runs:
         pull: true
         push: ${{ inputs.push }}
         load: ${{ inputs.push == 'false' }}
-        tags: ${{ steps.meta.outputs.tags }}
+        tags: ghcr.io/${{ steps.meta.outputs.tags }}
         cache-from: type=gha
         cache-to: type=gha,mode=max
