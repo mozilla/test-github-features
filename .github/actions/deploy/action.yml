@@ -1,0 +1,23 @@
+name: 'Deploy to fly'
+description: 'Deploys a published image to fly'
+inputs:
+  image:
+    required: true
+    description: "Which image to deploy"
+  app:
+    required: true
+    description: "Which environment to deploy to"
+  token:
+    required: true
+    description: "Access token for flyctl"
+
+runs:
+  using: 'docker'
+  image: ghcr.io/superfly/flyctl:latest
+  args:
+    - deploy
+    - -t ${{ inputs.token }}
+    - -i ${{ inputs.image }}
+    - -a ${{ inputs.app }}
+    - --yes
+    - --verbose
