@@ -25,3 +25,15 @@ jobs:
         run: |
           echo "Deploying to staging"
           # Your deployment script here
+      - name: Notify (scuccessful deployment)
+        if: success()
+        uses: ./.github/actions/slack
+        with:
+          message: ":tada: Deployed to staging :white_check_mark: successfully!"
+          webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
+      - name: Notify (failed deployment)
+        if: failure()
+        uses: ./.github/actions/slack
+        with:
+          message: ":fail: Failed to deploy to staging :red_flag: successfully!"
+          webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}

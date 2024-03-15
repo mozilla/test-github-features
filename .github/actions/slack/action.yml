@@ -1,0 +1,26 @@
+name: Send slack message
+description: Send a slack message
+inputs:
+  message:
+    description: "Message to send"
+    required: true
+  channel:
+    description: "The channel to send the message to"
+    required: false
+    default: "test-github-features"
+  webhook_url:
+    description: "The webhook url to use"
+    required: true
+runs:
+  using: 'composite'
+  steps:
+    - name: Send message
+      uses: slackapi/slack-github-action@v1
+      with:
+        channel-id: ${{ inputs.channel }}
+        payload: |
+          {
+            "message": "${{ inputs.message }}"
+          }
+      env:
+        SLACK_WEBHOOK_URL: ${{ inputs.webhook_url }}

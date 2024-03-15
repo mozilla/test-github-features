@@ -3,12 +3,32 @@ name: Build
 on:
   create:
   workflow_dispatch:
+    inputs:
+      push:
+        description: 'Push to registry'
+        required: false
+        default: 'false'
+
+permissions:
+  contents: read
+  packages: write
 
 jobs:
-  ci_build:
+  build:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
     - name: Build
+      id: build
       uses: ./.github/actions/build
+      with:
+        push: ${{ github.event.inputs.push }}
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    - name: Notify
+      if: ${{ inputs.push == 'true' }} && ${{ success() }}
+      uses: ./.github/actions/slack
+      with:
+        message: "Image built and pushed to [${{ steps.build.outputs.tags }}](${{ steps.build.outputs.tags }})"
+        webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
 
