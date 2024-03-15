@@ -1,7 +1,9 @@
-name: Push
+name: Merge
 
 on:
-  push:
+  merge_group:
+  # Required to make status check pass.
+  pull_request:
     branches:
       - main
 
@@ -13,13 +15,13 @@ jobs:
         run: |
           echo "json: ${{ github }}"
           printenv
-  deploy_production:
+  deploy_staging:
+    if: ${{ github.event_name == 'merge_group' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-      - name: Deploy to production
+      - name: Deploy to staging
         run: |
-          echo "Deploying to production"
+          echo "Deploying to staging"
           # Your deployment script here
-
