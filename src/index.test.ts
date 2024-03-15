@@ -20,7 +20,8 @@ describe('GET /', () => {
 	});
 
 	it('should return default version if none is defined on environment', async () => {
-		const expectedResponse = { version: "test" };
+		const expectedResponse = { version: "not defined" };
+		app.set('version', undefined)
 
 		const response = await request(app).get('/').expect(200);
 
