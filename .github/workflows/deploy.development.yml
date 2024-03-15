@@ -1,0 +1,33 @@
+name: Deploy (staging)
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    if: ${{ github.event_name == 'workflow_dispatch' }}
+    runs-on: ubuntu-latest
+    environment:
+      name: development
+      url: https://test-github-features-development.fly.dev
+    steps:
+      - uses: actions/checkout@v2
+      - id: build
+        uses: ./.github/actions/build
+        with:
+          push: true
+          username: ${{ github.actor}}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Deploy
+        uses: ./.github/actions/deploy
+        with:
+          environment: development
+          token: ${{ secrets.FLY_TOKEN }}
+          image: ${{ steps.build.outputs.tags }}
+          slack_webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
