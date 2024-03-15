@@ -7,39 +7,37 @@ on:
     branches:
       - main
 
+env:
+  environment: staging
+
 jobs:
-  log:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Log event
-        run: |
-          echo "json: ${{ github }}"
-          printenv
   deploy_staging:
     if: ${{ github.event_name == 'merge_group' }}
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v2
+      - uses: actions/checkout@v2
       - id: build
         uses: ./.github/actions/build
         with:
           push: true
           username: ${{ github.actor}}
           password: ${{ secrets.GITHUB_TOKEN }}
-      - name: Deploy to staging
-        run: |
-          echo "Deploying to staging"
-          # Your deployment script here
+
+      - name: Deploy to (${{ env.environment }})
+        uses: ./.github/actions/deploy
+        with:
+          app: ${{ env.environment }}
+          token: ${{ secrets.FLY_TOKEN }}
+          iamge: ${{ steps.build.outputs.tags }}
       - name: Notify (scuccessful deployment)
         if: success()
         uses: ./.github/actions/slack
         with:
-          message: ":tada: Deployed to staging :white_check_mark: successfully!"
+          message: ":tada: Deployed to ${{ env.environment }} :white_check_mark: successfully!"
           webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
       - name: Notify (failed deployment)
         if: failure()
         uses: ./.github/actions/slack
         with:
-          message: ":fail: Failed to deploy to staging :red_flag: successfully!"
+          message: ":fail: Failed to deploy to ${{ env.environment }} :red_flag: successfully!"
           webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
