@@ -28,7 +28,7 @@ jobs:
         with:
           app: ${{ env.environment }}
           token: ${{ secrets.FLY_TOKEN }}
-          iamge: ${{ steps.build.outputs.tags }}
+          image: ${{ steps.build.outputs.tags }}
       - name: Notify (scuccessful deployment)
         if: success()
         uses: ./.github/actions/slack

@@ -4,7 +4,6 @@ inputs:
   image:
     required: true
     description: "Which image to deploy"
-    default: "false"
   app:
     required: true
     description: "Which environment to deploy to"
