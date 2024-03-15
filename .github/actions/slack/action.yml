@@ -18,6 +18,9 @@ runs:
       uses: slackapi/slack-github-action@v1
       with:
         channel-id: ${{ inputs.channel }}
-        slack-message: ${{ inputs.message }}
+        payload: |
+          {
+            "message": "${{ inputs.message }}"
+          }
       env:
         SLACK_WEBHOOK_URL: ${{ inputs.webhook_url }}
