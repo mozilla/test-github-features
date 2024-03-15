@@ -1,0 +1,18 @@
+name: Send slack message
+description: Send a slack message
+inputs:
+  message:
+    description: "Message to send"
+    required: true
+  channel:
+    description: "The channel to send the message to"
+    required: false
+    default: "slackapi/slack-github-action@v1"
+runs:
+  using: 'composite'
+  steps:
+    - name: Send message
+      uses: slackapi/slack-github-action@v1
+      with:
+        channel-id: ${{ inputs.channel }}
+        slack-message: ${{ inputs.message }}
