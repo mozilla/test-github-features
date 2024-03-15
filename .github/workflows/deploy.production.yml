@@ -1,0 +1,33 @@
+name: Deploy (production)
+
+on:
+  push:
+    branches:
+      - main
+
+concurrency:
+  group: ${{ github.event_name }}
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: https://test-github-features.fly.dev
+    steps:
+      - uses: actions/checkout@v2
+      - id: build
+        uses: ./.github/actions/build
+        with:
+          push: true
+          username: ${{ github.actor}}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Deploy
+        uses: ./.github/actions/deploy
+        with:
+          environment: production
+          token: ${{ secrets.FLY_TOKEN }}
+          image: ${{ steps.build.outputs.tags }}
+          slack_webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}

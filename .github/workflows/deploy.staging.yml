@@ -1,0 +1,31 @@
+name: Deploy (staging)
+
+on:
+  merge_group:
+
+concurrency:
+  group: ${{ github.event_name }}
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: staging
+      url: https://test-github-features-staging.fly.dev
+    steps:
+      - uses: actions/checkout@v2
+      - id: build
+        uses: ./.github/actions/build
+        with:
+          push: true
+          username: ${{ github.actor}}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Deploy
+        uses: ./.github/actions/deploy
+        with:
+          environment: staging
+          token: ${{ secrets.FLY_TOKEN }}
+          image: ${{ steps.build.outputs.tags }}
+          slack_webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
