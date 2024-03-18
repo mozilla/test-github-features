@@ -13,7 +13,7 @@ jobs:
     - name: Test
       uses: ./.github/actions/run
       with:
-        image: ${{ steps.build.outputs.tags }}
+        image: ${{ steps.build.outputs.image_version }}
         run: |
           echo "Testing"
           npm ci
@@ -28,7 +28,7 @@ jobs:
     - name: Lint
       uses: ./.github/actions/run
       with:
-        image: ${{ steps.build.outputs.tags }}
+        image: ${{ steps.build.outputs.image_version }}
         run: |
           echo "Linting"
           npm ci

@@ -26,7 +26,7 @@ jobs:
         uses: ./.github/actions/deploy
         with:
           environment: staging
-          image: ${{ steps.build.outputs.tags }}
+          image: ${{ steps.build.outputs.image_version }}
           version: ${{ steps.build.outputs.version }}
           fly_token: ${{ secrets.FLY_TOKEN }}
           slack_webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
