@@ -13,7 +13,7 @@ jobs:
       - name: Notify (attempt)
         uses: ./.github/actions/slack
         with:
-          message: "deploying ${{ github.event.deployment_status.log_url }} to ${{ github.event.deployment_status.environment }} :rocket:"
+          message: "deploying ${{ github.event.deployment_status.log_url }} to ${{ github.event.deployment_status.environment }} :loading:"
           webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
 
   post_deploment:
@@ -69,20 +69,20 @@ jobs:
         run: |
           touch comment.txt
 
-          environment='${{ github.event.deployment_status.environment}}'
+          environment='*${{ github.event.deployment_status.environment}}*'
           environment_url='${{ github.event.deployment_status.environment_url }}'
           commit_url='${{ github.server_url}}/${{ github.repository}}/commit/${{ github.sha }}'
           created_at='${{ github.event.deployment_status.created_at }}'
-          updated_at='${{ github.event.deployment_status.updated_at }}'
+          updated_at='*${{ github.event.deployment_status.updated_at }}*'
           log_url='${{ github.event.deployment_status.log_url }}'
 
           if [[ "${{ steps.status.outputs.status }}" == "success" ]]; then
             cat <<EOF >> comment.txt
-            Deplyoment of <$commit_url> to ($environment) was successful at $updated_at ([logs]($log_url)
+            :tada: Deplyoment of <$commit_url> to ($environment) was successful :white_check_mark: at $updated_at ([logs]($log_url))
           EOF
           elif [[ "${{ steps.status.outputs.state }}" == "failure" ]]; then
             cat <<EOF >> comment.txt
-            Deployment of <$commit_url> to ($environment) failed with status (${{ github.event.deployment_status.state }}) at $updated_at ([logs]($log_url)
+            Deployment of <$commit_url> to ($environment) failed :x: with status (${{ github.event.deployment_status.state }}) at $updated_at ([logs]($log_url))
           EOF
           fi
 
