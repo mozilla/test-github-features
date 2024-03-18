@@ -7,18 +7,9 @@ inputs:
   image:
     required: true
     description: "Which image to deploy"
-  version:
-    required: true
-    description: "Which version to deploy"
   fly_token:
     required: true
     description: "Access token for flyctl"
-  slack_webhook_url:
-    required: true
-    description: "Webhook URL for slack"
-  gh_token:
-    description: 'The GitHub token to use for the API requests'
-    required: true
 
 runs:
   using: 'composite'
