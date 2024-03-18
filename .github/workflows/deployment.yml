@@ -1,11 +1,114 @@
-name: On Deployment
+name: Deployment (notifications)
 
 on:
-  deployment
-
+  deployment_status:
 jobs:
-  link:
+  pre_deployment:
     runs-on: ubuntu-latest
+    if: |
+      github.event.deployment_status.state == 'pending' ||
+      github.event.deployment_status.state == 'in_progress'
+    steps:
+      - uses: actions/checkout@v2
+      - name: Notify (attempt)
+        uses: ./.github/actions/slack
+        with:
+          message: "deploying ${{ github.event.deployment_status.log_url }} to ${{ github.event.deployment_status.environment }}..."
+          webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+  post_deploment:
+    runs-on: ubuntu-latest
+    if: |
+      github.event.deployment_status.state == 'success' ||
+      github.event.deployment_status.state == 'failure' ||
+      github.event.deployment_status.state == 'error'
     steps:
       - uses: actions/checkout@v2
       - uses: ./.github/actions/context
+      - id: status
+        shell: bash
+        run: |
+          if [[ "${{ github.event.deployment_status.state }}" == "success" ]]; then
+            echo "status=success" >> $GITHUB_OUTPUT
+          elif [[ "${{ github.event.deployment_status.state }}" == "failure" || "${{ github.event.deployment_status.state }}" == "error" ]]; then
+            echo "status=failure" >> $GITHUB_OUTPUT
+          fi
+      - name: Get The PRs associated with the commit
+        id: prs
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          data=$(gh api graphql \
+            -F owner='${{ github.repository_owner }}' \
+            -F name='${{ github.event.repository.name }}' \
+            -F ref='${{ github.sha }}' \
+            -F query='query($name: String!, $owner: String!, $ref: GitObjectID!) {
+                repository(owner: $owner, name: $name) {
+                  object(oid: $ref) {
+                    ...on Commit {
+                      associatedPullRequests(first: 10) {
+                        nodes {
+                          number
+                        }
+                      }
+                    }
+                  }
+                }
+              }')
+
+          prs=$(echo $data | jq -r '.data.repository.object.associatedPullRequests.nodes[].number')
+
+          echo "prs=$prs" >> $GITHUB_OUTPUT
+          echo "prs $prs"
+          echo "data $data"
+
+      - name: Create Comment Text
+        id: comment
+        shell: bash
+        run: |
+          touch comment.txt
+
+          environment='**${{ github.event.deployment_status.environment}}**'
+          environment_url='${{ github.event.deployment_status.environment_url }}'
+          commit_url='${{ github.server_url}}/${{ github.repository}}/commit/${{ github.sha }}'
+          created_at='${{ github.event.deployment_status.created_at }}'
+          updated_at='*${{ github.event.deployment_status.updated_at }}*'
+          log_url='${{ github.event.deployment_status.log_url }}'
+
+          if [[ "${{ steps.status.outputs.status }}" == "success" ]]; then
+            echo ":white_check_mark: Deplyoment of <$commit_url> to ([$environment]($environment_url)) successful at $updated_at ([logs]($log_url))" >> comment.txt
+          elif [[ "${{ steps.status.outputs.status }}" == "failure" ]]; then
+            echo ":x: Deployment of <$commit_url> to ($environment) failed with status (${{ github.event.deployment_status.state }}) at $updated_at ([logs]($log_url))" >> comment.txt
+          fi
+
+          {
+            echo 'text<<EOF' >> $GITHUB_OUTPUT
+            cat comment.txt >> $GITHUB_OUTPUT
+            echo EOF
+          } >> $GITHUB_OUTPUT
+
+      - name: Comment PR
+        shell: bash
+        if: ${{ steps.comment.outputs.text != '' }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if [[ -f comment.txt ]]; then
+            for pr in $(echo '${{ steps.prs.outputs.prs }}'); do
+              gh api \
+                --method POST \
+                -H "Accept: application/vnd.github.v3+json" \
+                /repos/${{ github.repository }}/pulls/$pr/reviews \
+                -f body='${{ steps.comment.outputs.text}}' \
+                -F event=COMMENT
+            done
+          fi
+
+      - name: Notify in Slack
+        uses: ./.github/actions/slack
+        with:
+          message: '${{ steps.comment.outputs.text }}'
+          webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+
