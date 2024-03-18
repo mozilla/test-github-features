@@ -69,7 +69,7 @@ jobs:
         run: |
           touch comment.txt
 
-          environment='*${{ github.event.deployment_status.environment}}*'
+          environment='**${{ github.event.deployment_status.environment}}**'
           environment_url='${{ github.event.deployment_status.environment_url }}'
           commit_url='${{ github.server_url}}/${{ github.repository}}/commit/${{ github.sha }}'
           created_at='${{ github.event.deployment_status.created_at }}'
