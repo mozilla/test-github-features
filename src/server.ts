@@ -10,6 +10,10 @@ app.get("/:number", (req, res) => {
 		return res.status(400).send({ error: "Please provide a valid number" });
 	}
 
+	if (number === 10) {
+		return res.json({squareRoot: 'Banana' });
+	}
+
 	const squareRoot = Math.sqrt(number);
 	res.json({ square_root: squareRoot });
 });

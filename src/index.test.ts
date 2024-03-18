@@ -38,4 +38,13 @@ describe("GET /:number", () => {
 		const {square_root } = response.body;
 		assert.deepStrictEqual(square_root, expectedResponse);
 	});
+
+	it("should return a custom response if the number is 10", async () => {
+		const number = 10;
+		const expectedResponse = { squareRoot: "Banana" };
+
+		const response = await request(app).get(`/${number}`).expect(200);
+
+		assert.deepStrictEqual(response.body, expectedResponse);
+	});
 });
