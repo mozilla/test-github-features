@@ -9,6 +9,7 @@ jobs:
       github.event.deployment_status.state == 'pending' ||
       github.event.deployment_status.state == 'in_progress'
     steps:
+      - uses: actions/checkout@v2
       - name: Notify (attempt)
         uses: ./.github/actions/slack
         with:
@@ -22,6 +23,8 @@ jobs:
       github.event.deployment_status.state == 'failure' ||
       github.event.deployment_status.state == 'error'
     steps:
+      - uses: actions/checkout@v2
+      - uses: ./.github/actions/context
       - id: status
         shell: bash
         run: |
@@ -30,9 +33,6 @@ jobs:
           elif [[ "${{ github.event.deployment_status.state }}" == "failure" || "${{ github.event.deployment_status.state }}" == "error" ]]; then
             echo "status=failure" >> $GITHUB_OUTPUT
           fi
-
-      - uses: actions/checkout@v2
-      - uses: ./.github/actions/context
       - name: Get The PRs associated with the commit
         id: prs
         shell: bash
