@@ -78,17 +78,11 @@ jobs:
 
           if [[ "${{ steps.status.outputs.status }}" == "success" ]]; then
             cat <<EOF >> comment.txt
-            :tada: This PR was shipped :white_check_mark:!
-            - environment: $environment
-            - environment url: <$environment_url>
-            - commit url: <$commit_url>
-            - created at: $created_at
-            - updated at: $updated_at
-            - log url: <$log_url>
+            Deplyoment of <$commit_url> to ($environment) was successful at $updated_at ([logs]($log_url)
           EOF
           elif [[ "${{ steps.status.outputs.state }}" == "failure" ]]; then
             cat <<EOF >> comment.txt
-            This PR failed to ship to $environment at $updated_at ([logs]($log_url))
+            Deployment of <$commit_url> to ($environment) failed with status (${{ github.event.deployment_status.state }}) at $updated_at ([logs]($log_url)
           EOF
           fi
 
@@ -118,7 +112,7 @@ jobs:
       - name: Notify in Slack
         uses: ./.github/actions/slack
         with:
-          message: $(cat comment.txt)
+          message: '${{ steps.comment.outputs.text }}'
           webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
 
 
