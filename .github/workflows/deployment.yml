@@ -9,3 +9,32 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - uses: ./.github/actions/context
+      - name: Get The PRs associated with the commit
+        id: prs
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          data=$(gh api graphql \
+            -F owner='${{ github.repository_owner }}' \
+            -F name='${{ github.event.repository.name }}' \
+            -F ref='${{ github.sha }}' \
+            -F query='query($name: String!, $owner: String!, $ref: GitObjectID!) {
+                repository(owner: $owner, name: $name) {
+                  object(oid: $ref) {
+                    ...on Commit {
+                      associatedPullRequests(first: 10) {
+                        nodes {
+                          number
+                        }
+                      }
+                    }
+                  }
+                }
+              }')
+
+          prs=$(echo $data | jq -r '.data.repository.object.associatedPullRequests.nodes[].number')
+
+          echo "prs=$prs" >> $GITHUB_OUTPUT
+          echo "prs $prs"
+          echo "data $data"
