@@ -110,7 +110,7 @@ jobs:
                 --method POST \
                 -H "Accept: application/vnd.github.v3+json" \
                 /repos/${{ github.repository }}/pulls/$pr/reviews \
-                -f body="$(cat comment.txt)" \
+                -f body='${{ steps.comment.outputs.text}}' \
                 -F event=COMMENT
             done
           fi
