@@ -92,8 +92,6 @@ jobs:
           EOF
           fi
 
-          echo "text=$(cat comment.txt)" >> $GITHUB_OUTPUT
-
           {
             echo 'text<<EOF' >> $GITHUB_OUTPUT
             cat comment.txt >> $GITHUB_OUTPUT
