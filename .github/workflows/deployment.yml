@@ -38,3 +38,43 @@ jobs:
           echo "prs=$prs" >> $GITHUB_OUTPUT
           echo "prs $prs"
           echo "data $data"
+
+      - name: Get Deployment statuses
+        id: status
+        shell: bash
+        run: |
+          data=$(gh api \
+            /repos/${{ github.repository }}/deployments/${{ github.event.deployment.id }}/statuses)
+
+          for status in $(echo $data | jq -r '.[] | "- \(.state) - \(.updated_at) to \(.environment_url)"'); do
+            echo "$status" >> statuses.txt
+          done
+
+          echo "statuses=$(cat statuses.txt)" >> $GITHUB_OUTPUT
+
+      - name: Comment PR
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          environment='${{ github.event.deployment.environment}}'
+          repository_url='${{ github.event.deployment.repository_url }}'
+
+          cat <<EOF >> comment.txt
+          This PR was shipped at ${{ github.event.deployment.created_at }}
+          - environment: $environment
+          - commit: [${{ github.sha }}]($repository_url/commit/${{ github.sha }})
+          - action run url: ${{ github.event.deployment.url }}
+
+          statuses:
+            ${{ steps.status.outputs.statuses }}
+          EOF
+
+          for pr in $(echo '${{ steps.prs.outputs.prs }}'); do
+            gh api \
+              --method POST \
+              -H "Accept: application/vnd.github.v3+json" \
+              /repos/${{ github.repository }}/pulls/$pr/reviews \
+              -f body="$(cat comment.txt)" \
+              -F event=COMMENT
+          done
