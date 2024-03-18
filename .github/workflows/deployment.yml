@@ -77,7 +77,7 @@ jobs:
           log_url='${{ github.event.deployment_status.log_url }}'
 
           if [[ "${{ steps.status.outputs.status }}" == "success" ]]; then
-            echo ":white_check_mark: Deplyoment of <$commit_url> to ($environment) successful at $updated_at ([logs]($log_url))" >> comment.txt
+            echo ":white_check_mark: Deplyoment of <$commit_url> to ([$environment]($environment_url)) successful at $updated_at ([logs]($log_url))" >> comment.txt
           elif [[ "${{ steps.status.outputs.status }}" == "failure" ]]; then
             echo ":x: Deployment of <$commit_url> to ($environment) failed with status (${{ github.event.deployment_status.state }}) at $updated_at ([logs]($log_url))" >> comment.txt
           fi
