@@ -1,7 +1,6 @@
 name: On Deployment
 
 on:
-  deployment:
   deployment_status:
 
 jobs:
@@ -40,42 +39,40 @@ jobs:
           echo "prs $prs"
           echo "data $data"
 
-      - name: Get Environment Information
-        id: environment
+      - name: Create Comment Text
+        id: comment
         shell: bash
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          environment=$(
-            gh api \
-              -H "Accept: application/vnd.github+json" \
-              -H "X-GitHub-Api-Version: 2022-11-28" \
-              /repos/${{ github.repository }}/environments/${{ github.event.deployment.environment}}
-          )
+          environment='${{ github.event.deployment_status.environment}}'
+          environment_url='${{ github.event.deployment_status.environment_url }}'
+          commit_url='${{ github.server_url}}/${{ github.repository}}/commit/${{ github.sha }}'
+          created_at='${{ github.event.deployment_status.created_at }}'
+          updated_at='${{ github.event.deployment_status.updated_at }}'
+          log_url='${{ github.event.deployment_status.log_url }}'
 
-          echo "html_url=$(echo $environment | jq -r '.html_url')" >> $GITHUB_OUTPUT
+          cat <<EOF >> comment.txt
+          This PR was shipped:
+          - environment: $environment
+          - environment url: <$environment_url>
+          - commit url: <$commit_url>
+          - created at: $created_at
+          - updated at: $updated_at
+          - log url: <$log_url>
+          EOF
+
+          echo "text=$(cat comment.txt)" >> $GITHUB_OUTPUT
 
       - name: Comment PR
         shell: bash
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          environment='${{ github.event.deployment.environment}}'
-          repository_url='${{ github.server_url}}/${{ github.repository}}'
-
-          cat <<EOF >> comment.txt
-          This PR was shipped at ${{ github.event.deployment.created_at }}
-          - environment: $environment
-          - url: ${{ steps.environment.outputs.html_url }}
-          - commit: [${{ github.sha }}]($repository_url/commit/${{ github.sha }})
-          - action run url: ${{ github.event.workflow_run.html_url }}
-          EOF
 
           for pr in $(echo '${{ steps.prs.outputs.prs }}'); do
             gh api \
               --method POST \
               -H "Accept: application/vnd.github.v3+json" \
               /repos/${{ github.repository }}/pulls/$pr/reviews \
-              -f body="$(cat comment.txt)" \
+              -f body="$(cat ${{ steps.comment.outputs.text }})" \
               -F event=COMMENT
           done
