@@ -33,5 +33,3 @@ jobs:
           fly_token: ${{ secrets.FLY_TOKEN }}
           slack_webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
           gh_token: ${{ secrets.GITHUB_TOKEN }}
-
-      - uses: ./.github/actions/link
