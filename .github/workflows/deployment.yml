@@ -1,15 +1,36 @@
-name: On Deployment
+name: Deployment (notifications)
 
 on:
   deployment_status:
 jobs:
-  link:
+  pre_deployment:
+    runs-on: ubuntu-latest
+    if: |
+      github.event.deployment_status.state == 'pending' ||
+      github.event.deployment_status.state == 'in_progress'
+    steps:
+      - name: Notify (attempt)
+        uses: ./.github/actions/slack
+        with:
+          message: "deploying ${{ github.event.deployment_status.log_url }} to ${{ github.event.deployment_status.environment }} :rocket:"
+          webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+  post_deploment:
     runs-on: ubuntu-latest
     if: |
       github.event.deployment_status.state == 'success' ||
       github.event.deployment_status.state == 'failure' ||
       github.event.deployment_status.state == 'error'
     steps:
+      - id: status
+        shell: bash
+        run: |
+          if [[ "${{ github.event.deployment_status.state }}" == "success" ]]; then
+            echo "status=success" >> $GITHUB_OUTPUT
+          elif [[ "${{ github.event.deployment_status.state }}" == "failure" || "${{ github.event.deployment_status.state }}" == "error" ]]; then
+            echo "status=failure" >> $GITHUB_OUTPUT
+          fi
+
       - uses: actions/checkout@v2
       - uses: ./.github/actions/context
       - name: Get The PRs associated with the commit
@@ -46,6 +67,8 @@ jobs:
         id: comment
         shell: bash
         run: |
+          touch comment.txt
+
           environment='${{ github.event.deployment_status.environment}}'
           environment_url='${{ github.event.deployment_status.environment_url }}'
           commit_url='${{ github.server_url}}/${{ github.repository}}/commit/${{ github.sha }}'
@@ -53,9 +76,9 @@ jobs:
           updated_at='${{ github.event.deployment_status.updated_at }}'
           log_url='${{ github.event.deployment_status.log_url }}'
 
-          if [[ "${{ github.event.deployment_status.state }}" == "success" ]]; then
+          if [[ "${{ steps.status.outputs.status }}" == "success" ]]; then
             cat <<EOF >> comment.txt
-            This PR was shipped:
+            :tada: This PR was shipped :white_check_mark:!
             - environment: $environment
             - environment url: <$environment_url>
             - commit url: <$commit_url>
@@ -63,13 +86,16 @@ jobs:
             - updated at: $updated_at
             - log url: <$log_url>
           EOF
-          elif [[ "${{ github.event.deployment_status.state }}" == "failure" || "${{ github.event.deployment_status.state }}" == "error" ]]; then
+          elif [[ "${{ steps.status.outputs.state }}" == "failure" ]]; then
             cat <<EOF >> comment.txt
             This PR failed to ship to $environment at $updated_at ([logs]($log_url))
           EOF
           fi
+
+          echo "text=$(cat comment.txt)" >> $GITHUB_OUTPUT
       - name: Comment PR
         shell: bash
+        if: ${{ steps.comment.outputs.text != '' }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -83,3 +109,11 @@ jobs:
                 -F event=COMMENT
             done
           fi
+
+      - name: Notify in Slack
+        uses: ./.github/actions/slack
+        with:
+          message: $(cat comment.txt)
+          webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+
