@@ -1,7 +1,8 @@
 name: On Deployment
 
 on:
-  deployment
+  deployment:
+  deployment_status:
 
 jobs:
   link:
@@ -39,18 +40,20 @@ jobs:
           echo "prs $prs"
           echo "data $data"
 
-      - name: Get Deployment statuses
-        id: status
+      - name: Get Environment Information
+        id: environment
         shell: bash
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          data=$(gh api \
-            /repos/${{ github.repository }}/deployments/${{ github.event.deployment.id }}/statuses)
+          environment=$(
+            gh api \
+              -H "Accept: application/vnd.github+json" \
+              -H "X-GitHub-Api-Version: 2022-11-28" \
+              /repos/${{ github.repository }}/environments/${{ github.event.deployment.environment}}
+          )
 
-          echo "data: $data"
-
-          echo "statuses=$(echo $data | jq -r '.[] | "- \(.state) - \(.updated_at) to \(.environment_url)"')" >> $GITHUB_OUTPUT
+          echo "html_url=$(echo $environment | jq -r '.html_url')" >> $GITHUB_OUTPUT
 
       - name: Comment PR
         shell: bash
@@ -58,16 +61,14 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           environment='${{ github.event.deployment.environment}}'
-          repository_url='${{ github.event.deployment.repository_url }}'
+          repository_url='${{ github.server_url}}/${{ github.repository}}'
 
           cat <<EOF >> comment.txt
           This PR was shipped at ${{ github.event.deployment.created_at }}
           - environment: $environment
+          - url: ${{ steps.environment.outputs.html_url }}
           - commit: [${{ github.sha }}]($repository_url/commit/${{ github.sha }})
-          - action run url: ${{ github.event.deployment.url }}
-
-          statuses:
-            ${{ steps.status.outputs.statuses }}
+          - action run url: ${{ github.event.workflow_run.html_url }}
           EOF
 
           for pr in $(echo '${{ steps.prs.outputs.prs }}'); do
