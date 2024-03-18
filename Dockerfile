@@ -24,6 +24,3 @@ RUN npm i --omit=dev --no-save
 
 EXPOSE 3000
 
-
-CMD ["npm", "run", "start"]
-

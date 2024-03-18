@@ -19,6 +19,12 @@ outputs:
   version:
     description: "The version for the image"
     value: ${{ steps.meta.outputs.version }}
+  image:
+    description: "The Docker image"
+    value: ${{ steps.image.outputs.image }}
+  image_version:
+    description: "Combines image and version to a valid image tag"
+    value: ${{ steps.image.outputs.image }}:${{ steps.meta.outputs.version }}
 
 runs:
   using: "composite"
@@ -42,39 +48,22 @@ runs:
         username: ${{ inputs.username }}
         password: ${{ inputs.password }}
 
-    - name: Docker Tag
-      id: tag
+    - name: Docker Image
+      id: image
       shell: bash
       run: |
-        function export_tag() {
-          echo "tag=$1" >> $GITHUB_OUTPUT
-          exit 0
-        }
-
-        if [[ ${{ github.event_name }} == 'pull_request' ]]; then
-          export_tag "type=ref,event=pr"
-        elif [[ ${{ github.event_name }} == 'merge_group' ]]; then
-          export_tag "type=raw,value=staging"
-        elif [[ ${{ github.event_name }} == 'push' ]]; then
-          if [[ ${{ github.ref }} == 'refs/heads/main' ]]; then
-            export_tag "type=raw,value=latest"
-          else
-            export_tag "type=sha"
-          fi
-        fi
-
-        echo "No tag found, exiting."
-        echo "event_name: ${{ github.event_name }}"
-        echo "ref: ${{ github.ref }}"
-
-        exit 1
+        echo "image=ghcr.io/mozilla/test-github-features" >> $GITHUB_OUTPUT
 
     - name: Docker meta
       id: meta
       uses: docker/metadata-action@v5
       with:
-        images: ghcr.io/mozilla/test-github-features
-        tags: ${{ steps.tag.outputs.tag }}
+        images: ${{ steps.image.outputs.image }}
+        tags: |
+          type=raw,value=latest,enable={{is_default_branch}}
+          type=raw,value=staging,enable=${{ github.event_name == 'merge_group' }}
+          type=ref,event=pr
+          type=sha
 
     - name: Build Image
       uses: docker/build-push-action@v5
