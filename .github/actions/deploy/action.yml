@@ -35,7 +35,6 @@ runs:
           --workdir /workspace \
           ghcr.io/superfly/flyctl:latest \
           deploy \
-            -t ${{ inputs.fly_token }} \
             -c /workspace/fly.toml \
             -i ${{ inputs.image }} \
             --yes \
