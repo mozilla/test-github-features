@@ -60,25 +60,23 @@ jobs:
             - updated at: $updated_at
             - log url: <$log_url>
             EOF
-            elif [[ "${{ github.event.deployment_status.state }}" == "failure" || "${{ github.event.deployment_status.state }}" == "error" ]]; then
+          elif [[ "${{ github.event.deployment_status.state }}" == "failure" || "${{ github.event.deployment_status.state }}" == "error" ]]; then
             cat <<EOF >> comment.txt
             This PR failed to ship to $environment at $updated_at ([logs]($log_url))
             EOF
           fi
-
-          echo "text=$(cat comment.txt)" >> $GITHUB_OUTPUT
-
       - name: Comment PR
         shell: bash
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-
-          for pr in $(echo '${{ steps.prs.outputs.prs }}'); do
-            gh api \
-              --method POST \
-              -H "Accept: application/vnd.github.v3+json" \
-              /repos/${{ github.repository }}/pulls/$pr/reviews \
-              -f body="$(cat ${{ steps.comment.outputs.text }})" \
-              -F event=COMMENT
-          done
+          if [[ -f comment.txt ]]; then
+            for pr in $(echo '${{ steps.prs.outputs.prs }}'); do
+              gh api \
+                --method POST \
+                -H "Accept: application/vnd.github.v3+json" \
+                /repos/${{ github.repository }}/pulls/$pr/reviews \
+                -f body="$(cat ${{ steps.comment.outputs.text }})" \
+                -F event=COMMENT
+            done
+          fi
