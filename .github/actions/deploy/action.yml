@@ -7,12 +7,18 @@ inputs:
   image:
     required: true
     description: "Which image to deploy"
-  token:
+  version:
+    required: true
+    description: "Which version to deploy"
+  fly_token:
     required: true
     description: "Access token for flyctl"
   slack_webhook_url:
     required: true
     description: "Webhook URL for slack"
+  gh_token:
+    description: 'The GitHub token to use for the API requests'
+    required: true
 
 runs:
   using: 'composite'
@@ -42,11 +48,63 @@ runs:
           --workdir /workspace \
           ghcr.io/superfly/flyctl:latest \
           deploy \
-            -t ${{ inputs.token }} \
+            -t ${{ inputs.fly_token }} \
             -c /workspace/fly.toml \
             -i ${{ inputs.image }} \
             --yes \
             --verbose
+
+    - name: Get input commit or latest commit
+      id: commit
+      shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.gh_token }}
+      run: |
+        echo "url=${{ github.server_url }}/${{ github.repository }}/commits/${{ github.sha }}" >> $GITHUB_OUTPUT
+
+    - name: Get The PRs associated with the commit
+      id: prs
+      shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.gh_token }}
+      run: |
+        prs=$(gh api \
+          -H "Accept: application/vnd.github+json" \
+          -H "X-GitHub-Api-Version: 2022-11-28" \
+          /repos/${{ github.repository }}/commits/${{ github.sha }}/pulls)
+
+        echo "prs=$prs" >> $GITHUB_OUTPUT
+        echo "prs $prs"
+
+    - name: Get ther run URL
+      id: run
+      shell: bash
+      run: |
+        echo "url=${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" >> $GITHUB_OUTPUT
+
+    - name: Comment PR
+      shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.gh_token }}
+      run: |
+        cat <<EOF >> comment.txt
+        This PR was shipped to (${{ inputs.environment }})
+        - [commit](${{ steps.commit.outputs.url }})
+        - version: ${{ inputs.version }}
+        - image: ${{ inputs.image }}
+
+        [View the run](${{ steps.run.outputs.url }})
+        EOF
+
+        for pr in $(echo '${{ steps.prs.outputs.prs }}' | jq -r '.[].number'); do
+          gh api \
+            --method POST \
+            -H "Accept: application/vnd.github.v3+json" \
+            /repos/${{ github.repository }}/pulls/$pr/reviews \
+            -f body="$(cat comment.txt)" \
+            -F event=COMMENT
+        done
+
     - name: Notify (scuccessful deployment)
       if: success()
       uses: ./.github/actions/slack

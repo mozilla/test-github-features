@@ -16,6 +16,9 @@ outputs:
   tags:
     description: "The Docker tags for the image"
     value: ${{ steps.meta.outputs.tags }}
+  version:
+    description: "The version for the image"
+    value: ${{ steps.meta.outputs.version }}
 
 runs:
   using: "composite"
