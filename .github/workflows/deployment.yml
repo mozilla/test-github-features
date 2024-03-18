@@ -78,7 +78,6 @@ jobs:
 
           if [[ "${{ steps.status.outputs.status }}" == "success" ]]; then
             echo ":tada: Deplyoment of <$commit_url> to ($environment) successful :white_check_mark: at $updated_at ([logs]($log_url))" >> comment.txt
-          EOF
           elif [[ "${{ steps.status.outputs.state }}" == "failure" ]]; then
             echo "Deployment of <$commit_url> to ($environment) failed :x: with status (${{ github.event.deployment_status.state }}) at $updated_at ([logs]($log_url))" >> comment.txt
           fi
