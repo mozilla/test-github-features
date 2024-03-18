@@ -28,6 +28,10 @@ jobs:
         uses: ./.github/actions/deploy
         with:
           environment: production
-          token: ${{ secrets.FLY_TOKEN }}
           image: ${{ steps.build.outputs.tags }}
+          version: ${{ steps.build.outputs.version }}
+          fly_token: ${{ secrets.FLY_TOKEN }}
           slack_webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
+          gh_token: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: ./.github/actions/link
