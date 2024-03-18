@@ -50,15 +50,21 @@ jobs:
           updated_at='${{ github.event.deployment_status.updated_at }}'
           log_url='${{ github.event.deployment_status.log_url }}'
 
-          cat <<EOF >> comment.txt
-          This PR was shipped:
-          - environment: $environment
-          - environment url: <$environment_url>
-          - commit url: <$commit_url>
-          - created at: $created_at
-          - updated at: $updated_at
-          - log url: <$log_url>
-          EOF
+          if [[ "${{ github.event.deployment_status.state }}" == "success" ]]; then
+            cat <<EOF >> comment.txt
+            This PR was shipped:
+            - environment: $environment
+            - environment url: <$environment_url>
+            - commit url: <$commit_url>
+            - created at: $created_at
+            - updated at: $updated_at
+            - log url: <$log_url>
+            EOF
+            elif [[ "${{ github.event.deployment_status.state }}" == "failure" || "${{ github.event.deployment_status.state }}" == "error" ]]; then
+            cat <<EOF >> comment.txt
+            This PR failed to ship to $environment at $updated_at ([logs]($log_url))
+            EOF
+          fi
 
           echo "text=$(cat comment.txt)" >> $GITHUB_OUTPUT
 
