@@ -42,6 +42,8 @@ jobs:
       - name: Get Deployment statuses
         id: status
         shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           data=$(gh api \
             /repos/${{ github.repository }}/deployments/${{ github.event.deployment.id }}/statuses)
