@@ -59,11 +59,11 @@ jobs:
             - created at: $created_at
             - updated at: $updated_at
             - log url: <$log_url>
-            EOF
+          EOF
           elif [[ "${{ github.event.deployment_status.state }}" == "failure" || "${{ github.event.deployment_status.state }}" == "error" ]]; then
             cat <<EOF >> comment.txt
             This PR failed to ship to $environment at $updated_at ([logs]($log_url))
-            EOF
+          EOF
           fi
       - name: Comment PR
         shell: bash
