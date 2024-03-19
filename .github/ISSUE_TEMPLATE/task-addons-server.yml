@@ -5,6 +5,7 @@ labels: ["type:feature", "needs:info", "repository:addons-server"]
 projects: []
 body:
   - type: markdown
+    id: tasklist
     attributes:
       value: |
         ```[tasklist]
@@ -27,9 +28,6 @@ body:
       label: Checks
       description: Checks before submitting the issue
       options:
-        - 
-          label: Use task lists to track associated subtasks
-          required: true
         -
           label: If the issue is ready to work on, remove the "needs:info" label
           required: true
