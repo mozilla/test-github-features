@@ -10,10 +10,10 @@ body:
       label: Tasks
       description: Some tasks
       value: |
-      ```[tasklist]
-        ### Tasks
-        - [x] Draft task
-        ```
+        ```[tasklist]
+          ### Tasks
+          - [x] Draft task
+          ```
   - type: textarea
     id: description
     attributes:
