@@ -14,10 +14,15 @@ body:
       placeholder: As a <blank>, I want to <blank, so that I can <blank>
     validations:
       required: true
-  - type: markdown
-    id: acceptance
+  - type: checkboxes
+    id: checks
     attributes:
-      value: |
-        ```[tasklist]
-        ### Tasks
-        ```
+      label: Checks
+      description: Checks before submitting the issue
+      options:
+        - 
+          label: Use task lists to track associated subtasks
+          required: true
+        -
+          label: If the issue is ready to work on, remove the "needs:info" label
+          required: true
