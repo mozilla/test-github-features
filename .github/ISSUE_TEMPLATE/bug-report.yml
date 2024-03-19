@@ -32,5 +32,5 @@ body:
       label: Is there an existing issue for this?
       description: Please search to see if an issue already exists for the bug you encountered.
       options:
-      - label: I have searched the existing issues (https://github.com/mozilla/test-github-features/issues?q=is%3Aopen+is%3Aissue+label%3Atype%3Abug)
+      - label: I have searched the existing [bugs](https://github.com/mozilla/test-github-features/issues?q=is%3Aopen+is%3Aissue+label%3Atype%3Abug)
         required: true
