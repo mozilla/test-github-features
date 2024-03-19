@@ -12,6 +12,5 @@ body:
         A few sentences describing what the task aims to achieve. It can be a simple sentence or a story formatted paragraph.
         Be concise and detailed. Avoid vague terms and include relevant links.
       placeholder: As a <blank>, I want to <blank, so that I can <blank>
-      value: ""
     validations:
       required: true
