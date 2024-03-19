@@ -4,11 +4,13 @@ title: "[Task]: "
 labels: ["type:feature", "needs:info", "repository:addons-server"]
 projects: []
 body:
-  - type: markdown
-    id: tasklist
+  - type: textarea
+    id: tasks
     attributes:
+      label: Tasks
+      description: Some tasks
       value: |
-        ```[tasklist]
+      ```[tasklist]
         ### Tasks
         - [x] Draft task
         ```
@@ -19,7 +21,13 @@ body:
       description: |
         A few sentences describing what the task aims to achieve. It can be a simple sentence or a story formatted paragraph.
         Be concise and detailed. Avoid vague terms and include relevant links.
-      placeholder: As a <blank>, I want to <blank, so that I can <blank>
+      placeholder: |
+        As a <blank>, I want to <blank, so that I can <blank>
+
+        ```[tasklist]
+        ### Tasks
+        - [x] Draft task
+        ```
     validations:
       required: true
   - type: checkboxes
