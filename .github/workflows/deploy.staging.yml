@@ -21,6 +21,7 @@ jobs:
           push: true
           username: ${{ github.actor}}
           password: ${{ secrets.GITHUB_TOKEN }}
+          node_env: production
 
       - name: Deploy
         uses: ./.github/actions/deploy

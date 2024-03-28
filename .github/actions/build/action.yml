@@ -11,6 +11,10 @@ inputs:
   username:
     required: false
     description: "Username for the registry"
+  node_env:
+    required: false
+    description: "Node environment"
+    default: "production"
 
 outputs:
   tags:
@@ -78,3 +82,4 @@ runs:
         cache-to: type=gha,mode=max
         build-args: |
           VERSION=${{ steps.meta.outputs.tags }}
+          NODE_ENV=${{ inputs.node_env }}

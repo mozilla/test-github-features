@@ -2,6 +2,11 @@ name: Publish
 
 on:
   workflow_dispatch:
+    inputs:
+      node_env:
+        description: 'Node environment'
+        required: true
+        default: 'production'
 
 permissions:
   contents: read
@@ -19,6 +24,7 @@ jobs:
         push: true
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
+        node_env: ${{ inputs.node_env }}
     - name: Notify (success)
       if: success()
       uses: ./.github/actions/slack

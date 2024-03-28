@@ -13,8 +13,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
-    - uses: ./.github/actions/build
-      id: build
+    - id: build
+      uses: ./.github/actions/build
+      with:
+        node_env: development
     - name: Test
       uses: ./.github/actions/run
       with:
@@ -28,8 +30,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
-    - uses: ./.github/actions/build
-      id: build
+    - id: build
+      uses: ./.github/actions/build
+      with:
+        node_env: development
     - name: Lint
       uses: ./.github/actions/run
       with:
