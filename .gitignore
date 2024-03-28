@@ -1,2 +1,7 @@
-dist
-node_modules
+dist/**
+node_modules/**
+
+
+.npm
+.bash_history
+.cache
