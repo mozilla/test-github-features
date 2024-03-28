@@ -2,7 +2,10 @@ import express from "express";
 
 const app = express();
 
-app.get('/', (_, res) => res.json({ version: app.get('version') || 'not defined' }));
+app.get('/', (_, res) => res.json({
+	version: app.get('version') || 'not defined',
+	node_env: app.get('node_env') || 'not defined'
+}));
 
 app.get("/:number", (req, res) => {
 	const number = parseFloat(req.params.number);

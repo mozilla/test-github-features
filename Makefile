@@ -28,6 +28,10 @@ shell: ## Access to the shell of the app docker container
 install: ## Install dependencies
 	docker compose exec app npm install $(ARGS) --loglevel=verbose
 
+.PHONY: test
+test: ## Run tests
+	docker compose exec app npm test $(ARGS)
+
 .PHONY: help
 help:
 	@echo "Please use 'make <target>' where <target> is one of the following commands.\n"

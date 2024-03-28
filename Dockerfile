@@ -19,38 +19,32 @@ EOF
 USER user
 WORKDIR ${HOME}
 
-FROM user as install
+FROM user as build
 
-ARG HOME NODE_ENV
-
-ENV NODE_ENV=${NODE_ENV}
-
-RUN \
-  --mount=type=bind,source=Makefile,target=${HOME}/Makefile \
-  --mount=type=bind,source=package.json,target=${HOME}/package.json \
-  --mount=type=bind,source=package-lock.json,target=${HOME}/package-lock.json \
-  npm install --loglevel=verbose --no-save
-
-FROM install as build
-
-ARG HOME NODE_ENV
-ENV NODE_ENV=${NODE_ENV}
+ARG HOME
+# Always development for building as we need to build the code
+ENV NODE_ENV=development
 
 RUN \
   --mount=type=bind,source=src,target=${HOME}/src \
   --mount=type=bind,source=package.json,target=${HOME}/package.json \
   --mount=type=bind,source=package-lock.json,target=${HOME}/package-lock.json \
   --mount=type=bind,source=tsconfig.json,target=${HOME}/tsconfig.json \
-  npm run build
+  <<EOF
+npm install --loglevel=verbose --no-save
+npm run build
+EOF
 
-FROM install as final
+FROM user as final
 
-ARG HOME VERSION
+ARG HOME VERSION NODE_ENV
 
-ENV VERSION=${VERSION}
+ENV VERSION=${VERSION} NODE_ENV=${NODE_ENV}
 
 COPY --from=build ${HOME}/dist ${HOME}/dist
 COPY package.json package-lock.json ${HOME}/
+
+RUN npm install --loglevel=verbose --no-save
 
 EXPOSE 3000
 
