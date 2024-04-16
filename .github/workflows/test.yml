@@ -29,6 +29,19 @@ jobs:
           echo "Testing"
           npm ci
           npm run test -- --shard=${{ matrix.group }}/5
+
+  test-status:
+    runs-on: ubuntu-20.04
+    needs: [test]
+    if: always()
+    steps:
+      - name: All tests passed
+        if: ${{ !(contains(needs.*.result, 'failure')) }}
+        run: exit 0
+      - name: Some tests failed
+        if: ${{ contains(needs.*.result, 'failure') }}
+        run: exit 1
+
   lint:
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
