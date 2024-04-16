@@ -11,6 +11,10 @@ jobs:
   test:
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        group: [1, 2, 3, 4, 5]
+
     steps:
     - uses: actions/checkout@v4
     - id: build
@@ -24,7 +28,7 @@ jobs:
         run: |
           echo "Testing"
           npm ci
-          npm run test
+          npm run test -- --shard=${{ matrix.group }}/5
   lint:
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest

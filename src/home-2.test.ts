@@ -1,0 +1,35 @@
+import request from "supertest";
+import { describe, it, beforeEach } from "vitest";
+import assert from "assert";
+
+import app from './server';
+
+describe('GET /', () => {
+	beforeEach(() => {
+		app.set('version', 'test');
+		app.set('node_env', 'test');
+	});
+
+	it('should return the version/node_env based on config', async () => {
+		const expectedVersion = "1.0.0";
+		const expectedEnv = "test";
+		app.set('version', expectedVersion);
+		app.set('node_env', expectedEnv);
+		const expectedResponse = { version: expectedVersion, node_env: expectedEnv };
+
+		const response = await request(app).get('/').expect(200);
+
+		assert.deepStrictEqual(response.body, expectedResponse);
+	});
+
+	it('should return default version/node_env if none is defined on environment', async () => {
+		const defaultReponse = 'not defined';
+		const expectedResponse = { version: defaultReponse, node_env: defaultReponse };
+		app.set('version', undefined);
+		app.set('node_env', undefined);
+
+		const response = await request(app).get('/').expect(200);
+
+		assert.deepStrictEqual(response.body, expectedResponse);
+	});
+});
