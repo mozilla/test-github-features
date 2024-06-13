@@ -2,40 +2,33 @@ name: Release
 
 on:
   release:
-    types: [
-      published,
-      unpublished,
-      created,
-      edited,
-      deleted,
-      prereleased,
-      released,
-    ]
-  workflow_dispatch:
+    types: [published]
 
-permissions:
-  actions: write
-  checks: write
-  contents: write
-  deployments: write
-  id-token: write
-  issues: write
-  discussions: write
-  packages: write
-  pages: write
-  pull-requests: write
-  repository-projects: write
-  security-events: write
-  statuses: write
+defaults:
+  run:
+    shell: bash
 
 jobs:
-  context:
+  release:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Log (github)
-        shell: bash
+      - name: Context (github)
         run: |
           cat <<EOF
           ${{toJson(github)}}
           EOF
+
+      - uses: actions/checkout@v4
+
+      - name: Build container
+        id: build_container
+        uses: ./.github/actions/build
+        with:
+          # We are not going to push the image until we are ready to enable this release
+          # pipeline and disable the circle CI build/push
+          push: true
+          username: ${{ github.actor}}
+          password: ${{ secrets.GITHUB_TOKEN }}
+          node_env: production
+
