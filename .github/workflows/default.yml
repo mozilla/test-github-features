@@ -41,7 +41,7 @@ jobs:
   call_worker:
     uses: ./.github/workflows/worker.yml
     with:
-      boolean: ${{ inputs.boolean }}
+      boolean: ${{ inputs.boolean == 'true' }}
       number: ${{ inputs.number }}
       string: ${{ inputs.string }}
       optional: ${{ inputs.optional }}
