@@ -2,7 +2,10 @@ name: Default
 
 on:
   release:
+    types: [published, deleted]
   push:
+    branches:
+      - main
   pull_request:
   workflow_dispatch:
     inputs:
@@ -26,7 +29,6 @@ on:
         default: 'fallback'
         required: false
         type: string
-  repository_dispatch:
 
 concurrency:
   group: ${{ github.event_name }}-${{ github.ref }}
