@@ -5,6 +5,27 @@ on:
   push:
   pull_request:
   workflow_dispatch:
+    inputs:
+      boolean:
+        description: 'A boolean input'
+        default: true
+        required: true
+        type: boolean
+      number:
+        description: 'A number input'
+        default: 0
+        required: true
+        type: number
+      string:
+        description: 'A string input'
+        default: 'foo'
+        required: true
+        type: string
+      optional:
+        description: 'An optional input'
+        default: 'fallback'
+        required: false
+        type: string
   repository_dispatch:
 
 concurrency:
@@ -20,6 +41,7 @@ jobs:
   call_worker:
     uses: ./.github/workflows/worker.yml
     with:
-      boolean: false
-      number: 1
-      string: 'hello'
+      boolean: ${{ inputs.boolean }}
+      number: ${{ inputs.number }}
+      string: ${{ inputs.string }}
+      optional: ${{ inputs.optional }}
