@@ -1,0 +1,64 @@
+name: Worker
+
+on:
+  workflow_call:
+    inputs:
+      boolean:
+        description: 'A boolean input'
+        default: true
+        required: true
+        type: boolean
+      number:
+        description: 'A number input'
+        default: 0
+        required: true
+        type: number
+      string:
+        description: 'A string input'
+        default: 'foo'
+        required: true
+        type: string
+      optional:
+        description: 'An optional input'
+        default: 'fallback'
+        required: false
+        type: string
+    outputs:
+      workflow_output1:
+        description: "The first job output"
+        value: ${{ jobs.output.outputs.one }}
+      workflow_output2:
+        description: "The second job output"
+        value: ${{ jobs.output.outputs.two }}
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  context:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/context
+
+  output:
+    runs-on: ubuntu-latest
+
+    outputs:
+      one: ${{ steps.output.outputs.big }}
+      two: ${{ steps.test.outcome }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: output
+        shell: bash
+        run: |
+          echo "big=${{ github.event.inputs.number > 10 }}" >> $GITHUB_OUTPUT
+      - id: test
+        shell: bash
+        run: |
+          if [[ "${{ github.event.inputs.boolean }}" == 'true' ]]; then
+            exit 1
+          fi
+
+

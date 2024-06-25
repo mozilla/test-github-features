@@ -17,3 +17,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/context
+  call_worker:
+    uses: ./.github/workflows/worker.yml
+    with:
+      boolean: false
+      number: 1
+      string: 'hello'
