@@ -1,0 +1,19 @@
+name: Default
+
+on:
+  release:
+  push:
+  pull_request:
+  workflow_dispatch:
+  repository_dispatch:
+
+concurrency:
+  group: ${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  context:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/context
