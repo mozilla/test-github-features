@@ -62,3 +62,14 @@ jobs:
       number: ${{ fromJson(needs.context.outputs.number) }}
       string: ${{ needs.context.outputs.string }}
       optional: ${{ needs.context.outputs.optional }}
+
+  read_worker:
+    needs: call_worker
+    runs-on: ubuntu-latest
+
+    steps:
+      - shell: bash
+        run: |
+          cat <<EOF
+          ${{ toJson(needs.call_worker) }}
+          EOF
