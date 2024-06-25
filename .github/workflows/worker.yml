@@ -30,6 +30,10 @@ on:
       workflow_output2:
         description: "The second job output"
         value: ${{ jobs.output.outputs.two }}
+    secrets:
+      token:
+        description: 'A token passed from the caller workflow'
+        required: false
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.ref }}
@@ -41,6 +45,20 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/context
+
+  secret:
+    env:
+      github_secret: ${{ github.event.workflow_call.secrets.token }}
+      secret: ${{ secrets.token }}
+    runs-on: ubuntu-latest
+    steps:
+      - shell: bash
+        run: |
+          set -x
+          echo "env.secret: ${{ env.secret }}"
+          echo "contains(env, 'secret'): ${{ contains(env, 'secret') }}"
+          echo "env.github_secret: ${{ env.github_secret }}"
+          echo "contains(env, 'github_secret'): ${{ contains(env, 'github_secret') }}"
 
   output:
     runs-on: ubuntu-latest

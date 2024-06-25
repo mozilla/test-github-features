@@ -59,6 +59,8 @@ jobs:
   call_worker:
     needs: context
     uses: ./.github/workflows/worker.yml
+    secrets:
+       token: ${{ github.token }}
     with:
       boolean: ${{ fromJson(needs.context.outputs.boolean) }}
       number: ${{ fromJson(needs.context.outputs.number) }}
