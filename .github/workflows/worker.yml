@@ -55,6 +55,7 @@ jobs:
       - shell: bash
         run: |
           set -x
+          echo "secrets.token ${{ secrets.token }}"
           echo "env.secret: ${{ env.secret }}"
           echo "contains(env, 'secret'): ${{ contains(env, 'secret') }}"
           echo "env.github_secret: ${{ env.github_secret }}"
