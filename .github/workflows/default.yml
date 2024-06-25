@@ -49,10 +49,10 @@ jobs:
       - id: inputs
         shell: bash
         run: |
-          boolean="${{ inputs.boolean || false }}"
-          number="${{ inputs.number || 10 }}"
-          string="${{ inputs.string || 'goodbye' }}"
-          optional="${{ inputs.optional }}"
+          echo "boolean=${{ inputs.boolean || false }}" >> $GITHUB_OUTPUT
+          echo "number=${{ inputs.number || 10 }}" >> $GITHUB_OUTPUT
+          echo "string=${{ inputs.string || 'goodbye' }}" >> $GITHUB_OUTPUT
+          echo "optional=${{ inputs.optional }}" >> $GITHUB_OUTPUT
 
   call_worker:
     needs: context
