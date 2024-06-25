@@ -58,7 +58,7 @@ jobs:
     needs: context
     uses: ./.github/workflows/worker.yml
     with:
-      boolean: ${{ needs.context.outputs.boolean }}
-      number: ${{ needs.context.outputs.number }}
+      boolean: ${{ fromJson(needs.context.outputs.boolean) }}
+      number: ${{ fromJson(needs.context.outputs.number) }}
       string: ${{ needs.context.outputs.string }}
       optional: ${{ needs.context.outputs.optional }}
