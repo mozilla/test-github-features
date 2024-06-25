@@ -35,13 +35,30 @@ concurrency:
 jobs:
   context:
     runs-on: ubuntu-latest
+
+    outputs:
+      boolean: ${{ steps.inputs.outputs.boolean }}
+      number: ${{ steps.inputs.outputs.number }}
+      string: ${{ steps.inputs.outputs.string }}
+      optional: ${{ steps.inputs.outputs.optional }}
+
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/context
+
+      - id: inputs
+        shell: bash
+        run: |
+          boolean="${{ inputs.boolean || false }}"
+          number="${{ inputs.number || 10 }}"
+          string="${{ inputs.string || 'goodbye' }}"
+          optional="${{ inputs.optional }}"
+
   call_worker:
+    needs: context
     uses: ./.github/workflows/worker.yml
     with:
-      boolean: ${{ inputs.boolean == 'true' }}
-      number: ${{ inputs.number }}
-      string: ${{ inputs.string }}
-      optional: ${{ inputs.optional }}
+      boolean: ${{ needs.context.outputs.boolean }}
+      number: ${{ needs.context.outputs.number }}
+      string: ${{ needs.context.outputs.string }}
+      optional: ${{ needs.context.outputs.optional }}
