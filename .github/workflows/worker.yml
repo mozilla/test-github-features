@@ -53,11 +53,11 @@ jobs:
       - id: output
         shell: bash
         run: |
-          echo "big=${{ github.event.inputs.number > 10 }}" >> $GITHUB_OUTPUT
+          echo "big=${{ inputs.number > 10 }}" >> $GITHUB_OUTPUT
       - id: test
         shell: bash
         run: |
-          if [[ "${{ github.event.inputs.boolean }}" == 'true' ]]; then
+          if [[ "${{ inputs.boolean }}" == 'true' ]]; then
             exit 1
           fi
 
