@@ -37,8 +37,8 @@ jobs:
     runs-on: ubuntu-latest
 
     outputs:
-      boolean: ${{ steps.inputs.outputs.boolean }}
-      number: ${{ steps.inputs.outputs.number }}
+      boolean: ${{ fromJson(steps.inputs.outputs.boolean) }}
+      number: ${{ fromJson(steps.inputs.outputs.number) }}
       string: ${{ steps.inputs.outputs.string }}
       optional: ${{ steps.inputs.outputs.optional }}
 
