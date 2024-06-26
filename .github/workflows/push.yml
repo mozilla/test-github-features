@@ -46,16 +46,8 @@ jobs:
       steps:
         - uses: actions/checkout@v4
 
-        - uses: actions/download-artifact@v4
+        - uses: ./.github/actions/load
           with:
-            name: ${{ needs.build.outputs.version }}
-            path: /tmp/
-
-        - name: Load image
-          shell: bash
-          run: |
-            docker load < /tmp/${{ needs.build.outputs.version }}
-            docker image ls
-
+            version: ${{ needs.build.outputs.version }}
 
 

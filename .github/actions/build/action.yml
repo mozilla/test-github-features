@@ -86,6 +86,7 @@ runs:
         DOCKER_TAG: ${{ steps.tag.outputs.tag }}
       with:
         targets: app
+        load: true
         set: |
           *.output=type=docker,dest=${{ steps.tar.outputs.path }}
 

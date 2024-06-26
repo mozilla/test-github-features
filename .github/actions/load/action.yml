@@ -1,0 +1,20 @@
+name: 'Docker Load image from tar file'
+description: 'Loads a docker image from a tar file'
+inputs:
+  version:
+    required: true
+    description: "The docker image version you want to load"
+
+runs:
+  using: "composite"
+  steps:
+    - uses: actions/download-artifact@v4
+      with:
+        name: ${{ inputs.version }}
+        path: /tmp/
+
+    - name: Load image
+      shell: bash
+      run: |
+        docker load < /tmp/${{ inputs.version }}
+        docker image ls
