@@ -9,9 +9,16 @@ on:
 permissions:
   packages: write
 
+# TODO:
+# 1. split out the push action to separate action
+# 2. add caching based on fork behaviour, use GHA cache or registry..
+
 jobs:
   build:
     runs-on: ubuntu-latest
+
+    outputs:
+      version: ${{ steps.build.outputs.version }}
 
     steps:
       - uses: actions/checkout@v4
@@ -20,11 +27,35 @@ jobs:
         uses: ./.github/actions/context
 
       - uses: ./.github/actions/build
+        id: build
         with:
-          push: true
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
           node_env: production
           latest: ${{ steps.context.outputs.is_release_master }}
+
+      - uses: ./.github/actions/push
+        if: steps.context.outputs.is_fork == 'false'
+        with:
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+          tag: ${{ steps.build.outputs.tag }}
+
+  download:
+      runs-on: ubuntu-latest
+      needs: [build]
+
+      steps:
+        - uses: actions/checkout@v4
+
+        - uses: actions/download-artifact@v4
+          with:
+            name: ${{ needs.build.outputs.version }}
+            path: /tmp/
+
+        - name: Load image
+          shell: bash
+          run: |
+            docker load < /tmp/${{ needs.build.outputs.version }}
+            docker image ls
+
 
 

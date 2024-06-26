@@ -1,16 +1,6 @@
 name: 'Docker Build'
 description: 'Builds docker image'
 inputs:
-  push:
-    required: true
-    description: "Build and push image to registry (cannot be used together with load)"
-    default: "false"
-  password:
-    required: false
-    description: "Password for the registry"
-  username:
-    required: false
-    description: "Username for the registry"
   node_env:
     required: false
     description: "Node environment"
@@ -30,9 +20,9 @@ outputs:
   image:
     description: "The Docker image"
     value: ${{ steps.image.outputs.image }}
-  image_version:
+  tag:
     description: "Combines image and version to a valid image tag"
-    value: ${{ steps.image.outputs.image }}:${{ steps.meta.outputs.version }}
+    value: ${{ steps.tag.outputs.tag }}
 
 runs:
   using: "composite"
@@ -46,28 +36,11 @@ runs:
         version: latest
         buildkitd-flags: --debug
 
-    # Login to a registry to push the image
-    - name: Login to Container Registry
-      # Only login if we are pushing the image
-      if: ${{ inputs.push == 'true' }}
-      uses: docker/login-action@v3
-      with:
-        registry: ghcr.io
-        username: ${{ inputs.username }}
-        password: ${{ inputs.password }}
-
     - name: Docker Image
       id: image
       shell: bash
       run: |
-        registry="ghcr.io"
-        repository="${{ github.repository }}"
-        image="$registry/$repository"
-
-        echo "registry=$registry" >> $GITHUB_OUTPUT
-        echo "repository=$repository" >> $GITHUB_OUTPUT
-        echo "image=$image" >> $GITHUB_OUTPUT
-
+        echo "image=${{ github.repository }}" >> $GITHUB_OUTPUT
         cat $GITHUB_OUTPUT
 
     - name: Docker meta
@@ -100,6 +73,12 @@ runs:
 
         cat $GITHUB_OUTPUT
 
+    - name: Tar file
+      id: tar
+      shell: bash
+      run: |
+        echo "path=/tmp/${{ steps.meta.outputs.version }}" >> $GITHUB_OUTPUT
+
     - name: Build Image
       id: build
       uses: docker/bake-action@v4
@@ -107,8 +86,22 @@ runs:
         DOCKER_TAG: ${{ steps.tag.outputs.tag }}
       with:
         targets: app
-        push: ${{ inputs.push }}
-        load: ${{ inputs.push == 'false' }}
         set: |
-          *.cache-from=type=registry,ref=${{ steps.tag.outputs.tag_cache }}
-          *.cache-to=type=registry,ref=${{ steps.tag.outputs.tag_cache }},mode=max,compression-level=9,force-compression=true,ignore-error=true
+          *.output=type=docker,dest=${{ steps.tar.outputs.path }}
+
+    - name: Get image digest
+      id: digest
+      shell: bash
+      run: |
+        echo '${{ steps.build.outputs.metadata }}' > metadata.json
+        echo "digest=$(cat metadata.json | jq -r '.app."containerimage.digest"')" >> $GITHUB_OUTPUT
+        cat $GITHUB_OUTPUT
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ steps.meta.outputs.version }}
+        path: ${{ steps.tar.outputs.path }}
+        retention-days: 1
+        compression-level: 9
+        overwrite: true
