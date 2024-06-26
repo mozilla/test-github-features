@@ -11,9 +11,6 @@ inputs:
     default: "false"
 
 outputs:
-  tags:
-    description: "The Docker tags for the image"
-    value: ${{ steps.meta.outputs.tags }}
   version:
     description: "The version for the image"
     value: ${{ steps.meta.outputs.version }}
@@ -27,9 +24,9 @@ outputs:
 runs:
   using: "composite"
   steps:
-    # Setup docker to build for multiple architectures
     - name: Set up QEMU
       uses: docker/setup-qemu-action@v3
+
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v1
       with:
@@ -65,19 +62,17 @@ runs:
         ${{ steps.meta.outputs.json }}
         EOF
 
-        tag=$(cat meta.json | jq -r '.tags[0]')
-        tag_cache="$tag-cache"
-
-        echo "tag=$tag" >> $GITHUB_OUTPUT
-        echo "tag_cache=$tag_cache" >> $GITHUB_OUTPUT
-
+        echo "tag=$(cat meta.json | jq -r '.tags[0]')" >> $GITHUB_OUTPUT
         cat $GITHUB_OUTPUT
 
     - name: Tar file
       id: tar
       shell: bash
+      # image.tar is the name of the compressed image file
+      # This should be kept in sync with ./.github/actions/run/action.yml
+      # That loads the image from this file
       run: |
-        echo "path=/tmp/${{ steps.meta.outputs.version }}" >> $GITHUB_OUTPUT
+        echo "path=/tmp/image.tar" >> $GITHUB_OUTPUT
 
     - name: Build Image
       id: build
@@ -87,8 +82,6 @@ runs:
       with:
         targets: app
         load: true
-        set: |
-          *.output=type=docker,dest=${{ steps.tar.outputs.path }}
 
     - name: Get image digest
       id: digest
@@ -98,10 +91,17 @@ runs:
         echo "digest=$(cat metadata.json | jq -r '.app."containerimage.digest"')" >> $GITHUB_OUTPUT
         cat $GITHUB_OUTPUT
 
+    - name: Save Docker Image to Tar
+      shell: bash
+      run: |
+        docker save -o /tmp/image.tar ${{ steps.tag.outputs.tag }}
+
     - name: Upload artifact
       uses: actions/upload-artifact@v4
       with:
-        name: ${{ steps.meta.outputs.version }}
+        # The artifact name should be kept in sync with
+        # ./.github/actions/run/action.yml which downloads the artifact
+        name: docker-image
         path: ${{ steps.tar.outputs.path }}
         retention-days: 1
         compression-level: 9

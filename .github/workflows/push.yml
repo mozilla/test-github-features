@@ -18,7 +18,7 @@ jobs:
     runs-on: ubuntu-latest
 
     outputs:
-      version: ${{ steps.build.outputs.version }}
+      tag: ${{ steps.build.outputs.tag }}
 
     steps:
       - uses: actions/checkout@v4
@@ -46,8 +46,11 @@ jobs:
       steps:
         - uses: actions/checkout@v4
 
-        - uses: ./.github/actions/load
+        - uses: ./.github/actions/run
           with:
-            version: ${{ needs.build.outputs.version }}
+            tag: ${{ needs.build.outputs.tag }}
+            run: |
+              echo "Hello world"
+              npm run test
 
 

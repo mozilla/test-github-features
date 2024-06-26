@@ -28,4 +28,5 @@ runs:
     - name: Push Image
       shell: bash
       run: |
+        docker image ls
         docker image push ${{ inputs.registry }}/${{ inputs.tag }}

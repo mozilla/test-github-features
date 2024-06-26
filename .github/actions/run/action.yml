@@ -1,58 +1,42 @@
 name: 'Docker Run Action'
 description: 'Run a command in a new container'
 inputs:
-  image:
-    description: "The Docker image to run"
+  tag:
+    description: 'The docker image tag to run.'
     required: true
-  options:
-    description: 'Options'
-    required: false
   run:
     description: 'Run command in container'
     required: true
 runs:
   using: 'composite'
   steps:
-    - name: Validate inputs
+    - uses: actions/download-artifact@v4
+      with:
+        # The artifact name should be kept in sync with
+        # ./.github/actions/build/action.yml which uploads the artifact
+        name: docker-image
+        path: /tmp/
+
+      # image.tar is the name of the compressed image file
+      # This should be kept in sync with ./.github/actions/build/action.yml
+    - name: Load image
       shell: bash
       run: |
-        if [[ -z "${{ inputs.image }}" ]]; then
-          echo "Image is required"
-          exit 1
-        fi
-        if [[ -z "${{ inputs.run }}" ]]; then
-          echo "Run is required"
-          exit 1
-        fi
+        docker load < /tmp/image.tar
+        docker image ls
+
     - name: Run Docker Container
       shell: bash
+      env:
+        DOCKER_TAG: ${{ inputs.tag }}
       run: |
-        cat <<EOF > exec.sh
-        #!/bin/bash
-        whoami
-        ${{ inputs.run }}
+        # Start the specified services
+        make up
+
+        # Exec the run command in the container
+        # quoted 'EOF' to prevent variable expansion
+        cat <<'EOF' | docker compose exec --user root app sh
+          #!/bin/bash
+          whoami
+          ${{ inputs.run }}
         EOF
-
-        cat <<EOF > root.sh
-        #!/bin/bash
-        whoami
-        su -s /bin/bash -c './exec.sh' root
-        EOF
-
-        # Make both files executable
-        chmod +x exec.sh
-        chmod +x root.sh
-
-        # Debug info
-        echo "############"
-        cat root.sh
-        echo "############"
-        echo "############"
-        cat exec.sh
-        echo "############"
-
-        # Execute inside docker container
-        cat root.sh | docker run ${{ inputs.options }} \
-          -i --rm -u 0 \
-          -v $(pwd):/app \
-          ${{ inputs.image }} bash
