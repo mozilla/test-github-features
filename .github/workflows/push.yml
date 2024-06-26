@@ -31,13 +31,9 @@ jobs:
         with:
           node_env: production
           latest: ${{ steps.context.outputs.is_release_master }}
-
-      - uses: ./.github/actions/push
-        if: steps.context.outputs.is_fork == 'false'
-        with:
+          push: ${{ steps.context.outputs.is_fork == 'false' }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-          tag: ${{ steps.build.outputs.tag }}
 
   download:
       runs-on: ubuntu-latest
