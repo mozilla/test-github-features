@@ -14,6 +14,9 @@ permissions:
 # 2. add caching based on fork behaviour, use GHA cache or registry..
 
 jobs:
+  build_call:
+    uses: ./.github/workflows/build.yml
+
   build:
     runs-on: ubuntu-latest
 
