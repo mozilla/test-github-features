@@ -9,14 +9,21 @@ inputs:
     required: false
     description: "Tag latest version"
     default: "false"
+  target:
+    required: false
+    description: "Docker stage to target"
+    default: "final"
 
 outputs:
-  version:
-    description: "The version for the image"
-    value: ${{ steps.meta.outputs.version }}
   image:
     description: "The Docker image"
     value: ${{ steps.image.outputs.image }}
+  version:
+    description: "The version for the image"
+    value: ${{ steps.meta.outputs.version }}
+  digest:
+    description: "The build digest for the image"
+    value: ${{ steps.build.outputs.digest }}
   tag:
     description: "Combines image and version to a valid image tag"
     value: ${{ steps.tag.outputs.tag }}
@@ -76,25 +83,18 @@ runs:
 
     - name: Build Image
       id: build
-      uses: docker/bake-action@v4
-      env:
-        DOCKER_TAG: ${{ steps.tag.outputs.tag }}
+      uses: docker/build-push-action@v6
       with:
-        targets: app
-        load: true
-
-    - name: Get image digest
-      id: digest
-      shell: bash
-      run: |
-        echo '${{ steps.build.outputs.metadata }}' > metadata.json
-        echo "digest=$(cat metadata.json | jq -r '.app."containerimage.digest"')" >> $GITHUB_OUTPUT
-        cat $GITHUB_OUTPUT
-
-    - name: Save Docker Image to Tar
-      shell: bash
-      run: |
-        docker save -o /tmp/image.tar ${{ steps.tag.outputs.tag }}
+        platforms: linux/amd64
+        # Inject metadata produced earlier
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
+        annotations: ${{ steps.meta.outputs.annotations }}
+        # Output image to a local tar file to be uploaded
+        outputs: type=docker,dest=${{ steps.tar.outputs.path }}
+        # Target a specified stage
+        target: ${{ inputs.target }}
+        push: true
 
     - name: Upload artifact
       uses: actions/upload-artifact@v4
@@ -106,3 +106,9 @@ runs:
         retention-days: 1
         compression-level: 9
         overwrite: true
+
+    - name: Load Docker image
+      shell: bash
+      run: |
+        # Load the Docker image
+        docker load -i /tmp/image.tar
