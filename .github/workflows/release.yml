@@ -3,7 +3,31 @@ name: Release
 
 on:
   release:
-    types: [published, unpublished, created, edited, deleted, prereleased, released]
+    types: [
+      published,
+      unpublished,
+      created,
+      edited,
+      deleted,
+      prereleased,
+      released,
+    ]
+  workflow_dispatch:
+
+permissions:
+  actions: write
+  checks: write
+  contents: write
+  deployments: write
+  id-token: write
+  issues: write
+  discussions: write
+  packages: write
+  pages: write
+  pull-requests: write
+  repository-projects: write
+  security-events: write
+  statuses: write
 
 jobs:
   context:
