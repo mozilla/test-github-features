@@ -1,0 +1,12 @@
+# Workflow to test all the release events that we can trigger in GitHub Actions
+name: Release
+
+on:
+  release:
+
+jobs:
+  context:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/context
