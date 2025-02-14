@@ -9,16 +9,39 @@ on:
 jobs:
   context:
     runs-on: ubuntu-latest
-    steps:
-      - uses: ./.github/actions/context
 
-  on-success:
-    runs-on: ubuntu-latest
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    outputs:
+      is_release_master: true
+      is_release_tag: true
+
     steps:
-      - run: echo 'The triggering workflow passed'
-  on-failure:
+      - uses: actions/checkout@v4
+
+  notify_slack:
     runs-on: ubuntu-latest
-    if: ${{ github.event.workflow_run.conclusion == 'failure' }}
+    needs: [context]
+    # Only notify slack on release events
+    if: ${{ needs.context.outputs.is_release_master || needs.context.outputs.is_release_tag }}
     steps:
-      - run: echo 'The triggering workflow failed'
+      - name: Notify Slack
+        uses: mozilla/addons/.github/actions/slack@main
+        env:
+          retry_text: '[Rerun Workflow](${{ github.event.workflow_run.rerun_url }})'
+          event_text: ${{ needs.context.outputs.is_release_master && 'Release Master' || 'Release Tag' }}
+        with:
+          slack_token: ${{ secrets.SLACK_TOKEN }}
+          channel_id: ${{ secrets.SLACK_ADDONS_PRODUCTION_CHANNEL }}
+          message: >
+            *Workflow*
+            event: ${{ env.event_text }}
+            url: ${{ github.event.workflow_run.url }}
+            conclusion: ${{ github.event.workflow_run.conclusion }}
+
+            *Commit*
+            sha: ${{ github.event.workflow_run.head_commit.id }}
+            message: ${{ github.event.workflow_run.head_commit.message }}
+            author: ${{ github.event.workflow_run.head_commit.author.name }}
+            date: ${{ github.event.workflow_run.head_commit.timestamp }}
+
+            ${{ github.event.workflow_run.conclusion == 'failure' && env.retry_text || '' }}
+
