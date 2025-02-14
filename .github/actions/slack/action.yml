@@ -1,34 +1,26 @@
-name: Send slack message
-description: Send a slack message
+name: 'Send Slack Message'
+description: 'Sends a message to a specified Slack channel'
+
 inputs:
-  message:
-    description: "Message to send"
+  slack_token:
+    description: 'Slack Bot User OAuth Token'
     required: true
-  channel:
-    description: "The channel to send the message to"
-    required: false
-    default: "test-github-features"
-  webhook_url:
-    description: "The webhook url to use"
+  payload:
+    description: 'JSON payload to send to Slack'
     required: true
+  method:
+    description: 'Slack method to call'
+    required: true
+    default: 'chat.postMessage'
+
 runs:
   using: 'composite'
+
   steps:
-    - name: Send message
-      uses: slackapi/slack-github-action@v1
-      with:
-        channel-id: ${{ inputs.channel }}
-        text: ${{ inputs.message }}
-        blocks:
-          - type: context
-            elements:
-              - type: mrkdwn
-                text: ":github: *Workflow Run:* ${{ env.workflow_run }}"
-              - type: mrkdwn
-                text: ":bust_in_silhouette: *Triggered by:* @${{ github.actor }}"
-          - type: section
-            text:
-              type: mrkdwn
-              text: ${{ inputs.message }}
-      env:
-        SLACK_WEBHOOK_URL: ${{ inputs.webhook_url }}
+  - name: Raw Slack payload
+    uses: slackapi/slack-github-action@v2.0.0
+    with:
+      errors: true
+      method: ${{ inputs.method }}
+      token: ${{ inputs.slack_token }}
+      payload: ${{ inputs.payload }}
