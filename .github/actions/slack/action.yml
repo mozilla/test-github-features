@@ -18,9 +18,17 @@ runs:
       uses: slackapi/slack-github-action@v1
       with:
         channel-id: ${{ inputs.channel }}
-        payload: |
-          {
-            "message": "${{ inputs.message }}"
-          }
+        text: ${{ inputs.message }}
+        blocks:
+          - type: context
+            elements:
+              - type: mrkdwn
+                text: ":github: *Workflow Run:* ${{ env.workflow_run }}"
+              - type: mrkdwn
+                text: ":bust_in_silhouette: *Triggered by:* @${{ github.actor }}"
+          - type: section
+            text:
+              type: mrkdwn
+              text: ${{ inputs.message }}
       env:
         SLACK_WEBHOOK_URL: ${{ inputs.webhook_url }}

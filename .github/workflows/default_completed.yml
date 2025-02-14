@@ -23,8 +23,9 @@ jobs:
     # Only notify slack on release events
     if: ${{ needs.context.outputs.is_release_master || needs.context.outputs.is_release_tag }}
     steps:
+      - uses: actions/checkout@v4
       - name: Notify Slack
-        uses: mozilla/addons/.github/actions/slack@main
+        uses: ./.github/actions/slack
         env:
           retry_text: '[Rerun Workflow](${{ github.event.workflow_run.rerun_url }})'
           event_text: ${{ needs.context.outputs.is_release_master && 'Release Master' || 'Release Tag' }}
