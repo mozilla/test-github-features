@@ -31,17 +31,4 @@ jobs:
         with:
           slack_token: ${{ secrets.SLACK_TOKEN }}
           channel_id: ${{ secrets.SLACK_ADDONS_PRODUCTION_CHANNEL }}
-          message: >
-            *Workflow*
-            event: ${{ env.event_text }}
-            url: ${{ github.event.workflow_run.url }}
-            conclusion: ${{ github.event.workflow_run.conclusion }}
-
-            *Commit*
-            sha: ${{ github.event.workflow_run.head_commit.id }}
-            message: ${{ github.event.workflow_run.head_commit.message }}
-            author: ${{ github.event.workflow_run.head_commit.author.name }}
-            date: ${{ github.event.workflow_run.head_commit.timestamp }}
-
-            ${{ github.event.workflow_run.conclusion == 'failure' && env.retry_text || '' }}
-
+          message: test
