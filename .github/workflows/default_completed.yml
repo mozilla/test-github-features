@@ -2,7 +2,7 @@ name: Default (completed)
 
 on:
   workflow_run:
-    workflows: 'Default'
+    workflows: ['Default', 'Release']
     types:
       - completed
 
@@ -16,26 +16,48 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+      - uses: ./.github/actions/context
 
   notify_slack:
     runs-on: ubuntu-latest
     needs: [context]
-    # Only notify slack on release events
     if: ${{ needs.context.outputs.is_release_master || needs.context.outputs.is_release_tag }}
     steps:
-      - uses: actions/checkout@v4
       - name: Notify Slack
-        uses: ./.github/actions/slack
+        uses: mozilla/addons/.github/actions/slack@main
+
         env:
-          retry_text: '[Rerun Workflow](${{ github.event.workflow_run.rerun_url }})'
-          event_text: ${{ needs.context.outputs.is_release_master && 'Release Master' || 'Release Tag' }}
+          event: ${{ github.event.workflow_run.event }}
+          conclusion: ${{ github.event.workflow_run.conclusion }}
+          emoji: ${{ github.event.workflow_run.conclusion == 'success' && ':white_check_mark:' || ':x:' }}
+          workflow_url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.event.workflow_run.id }}
+          workflow_id: ${{ github.event.workflow_run.id }}
         with:
           slack_token: ${{ secrets.SLACK_TOKEN }}
           method: chat.postMessage
           payload: |
-            channel: ${{ secrets.SLACK_ADDONS_PRODUCTION_CHANNEL }}
+            channel: "${{ secrets.SLACK_ADDONS_PRODUCTION_CHANNEL }}"
+            text: "${{ env.event }} completed with ${{ env.conclusion }}"
             blocks:
-              - type: context
-                elements:
-                  - type: mrkdwn
-                    text: ":github: *Workflow Run:* ${{ github.event.workflow_run.url }}"
+            - type: section
+              text:
+                type: mrkdwn
+                text: "${{ env.emoji }} *${{ env.event }}* completed with *${{ env.conclusion }}*"
+            - type: context
+              elements:
+                - type: mrkdwn
+                  text: "*Workflow:* ${{ env.workflow_id }}"
+                - type: mrkdwn
+                  text: "*Actor:* ${{ github.event.workflow_run.actor.login }}"
+                - type: mrkdwn
+                  text: "*Commit:* ${{ github.event.workflow_run.head_commit.id }}"
+            - type: actions
+              elements:
+                - type: button
+                  text:
+                    type: plain_text
+                    text: "View Workflow"
+                    emoji: true
+                  value: workflow_url
+                  url: ${{ env.workflow_url }}
+

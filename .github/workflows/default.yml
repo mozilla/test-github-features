@@ -56,24 +56,24 @@ jobs:
           echo "string=${{ inputs.string || 'goodbye' }}" >> $GITHUB_OUTPUT
           echo "optional=${{ inputs.optional }}" >> $GITHUB_OUTPUT
 
-  call_worker:
-    needs: context
-    uses: ./.github/workflows/worker.yml
-    secrets:
-       token: ${{ github.token }}
-    with:
-      boolean: ${{ fromJson(needs.context.outputs.boolean) }}
-      number: ${{ fromJson(needs.context.outputs.number) }}
-      string: ${{ needs.context.outputs.string }}
-      optional: ${{ needs.context.outputs.optional }}
+  # call_worker:
+  #   needs: context
+  #   uses: ./.github/workflows/worker.yml
+  #   secrets:
+  #      token: ${{ github.token }}
+  #   with:
+  #     boolean: ${{ fromJson(needs.context.outputs.boolean) }}
+  #     number: ${{ fromJson(needs.context.outputs.number) }}
+  #     string: ${{ needs.context.outputs.string }}
+  #     optional: ${{ needs.context.outputs.optional }}
 
-  read_worker:
-    needs: call_worker
-    runs-on: ubuntu-latest
+  # read_worker:
+  #   needs: call_worker
+  #   runs-on: ubuntu-latest
 
-    steps:
-      - shell: bash
-        run: |
-          cat <<EOF
-          ${{ toJson(needs.call_worker) }}
-          EOF
+  #   steps:
+  #     - shell: bash
+  #       run: |
+  #         cat <<EOF
+  #         ${{ toJson(needs.call_worker) }}
+  #         EOF
