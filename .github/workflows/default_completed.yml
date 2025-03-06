@@ -71,8 +71,7 @@ jobs:
 
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: ./.github/actions/slack-workflow-notification
+      - uses: mozilla/addons/.github/actions/slack-workflow-notification@main
         with:
           slack_token: ${{ secrets.SLACK_TOKEN }}
           slack_channel: ${{ secrets.SLACK_ADDONS_PRODUCTION_CHANNEL }}
