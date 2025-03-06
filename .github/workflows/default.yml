@@ -56,14 +56,6 @@ jobs:
           echo "string=${{ inputs.string || 'goodbye' }}" >> $GITHUB_OUTPUT
           echo "optional=${{ inputs.optional }}" >> $GITHUB_OUTPUT
 
-  fail:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Fail
-        run: |
-          echo "This is a failure"
-          exit 1
-
   # call_worker:
   #   needs: context
   #   uses: ./.github/workflows/worker.yml
