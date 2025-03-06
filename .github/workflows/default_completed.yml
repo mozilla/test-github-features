@@ -10,35 +10,97 @@ jobs:
   context:
     runs-on: ubuntu-latest
 
+    outputs:
+      emoji: ${{ steps.ref.outputs.emoji }}
+      actor: ${{ steps.ref.outputs.actor }}
+      event: ${{ steps.ref.outputs.event }}
+      env: ${{ steps.ref.outputs.env }}
+      conclusion: ${{ steps.ref.outputs.conclusion }}
+      ref: ${{ steps.ref.outputs.ref }}
+      ref_link: ${{ steps.ref.outputs.ref_link }}
+      workflow_id: ${{ steps.ref.outputs.workflow_id }}
+      workflow_url: ${{ steps.ref.outputs.workflow_url }}
+
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/context
+      - id: ref
+        shell: bash
+        run: |
+          branch="${{ github.event.workflow_run.head_branch }}"
+          title="${{ github.event.workflow_run.display_title }}"
+          sha="${{ github.event.workflow_run.head_sha }}"
+          workflow_id="${{ github.event.workflow_run.id }}"
+          workflow_url="${{ github.event.workflow_run.html_url}}"
+          actor="${{ github.event.workflow_run.triggering_actor.login }}"
+          conclusion="${{ github.event.workflow_run.conclusion }}"
+
+          commit_short=$(echo "$sha" | cut -c1-7)
+
+          ref="$branch ($commit_short) $title"
+          event="${{ github.event.workflow_run.event}}"
+          repo_url="${{ github.server_url }}/${{ github.repository }}"
+
+          if [[ "$event" == "push" ]]; then
+            env="dev"
+            ref_link="$repo_url/commit/$sha"
+          elif [[ "$event" == "release" ]]; then
+            env="production"
+            ref_link="$repo_url/releases/tag/$head_branch"
+          fi
+
+          if [[ "$conclusion" == "success" ]]; then
+            emoji=":white_check_mark:"
+          else
+            emoji=":x:"
+          fi
+
+          echo "emoji=$emoji" >> $GITHUB_OUTPUT
+          echo "actor=$actor" >> $GITHUB_OUTPUT
+          echo "event=$event" >> $GITHUB_OUTPUT
+          echo "conclusion=$conclusion" >> $GITHUB_OUTPUT
+          echo "env=$env" >> $GITHUB_OUTPUT
+          echo "ref=$ref" >> $GITHUB_OUTPUT
+          echo "ref_link=$ref_link" >> $GITHUB_OUTPUT
+          echo "workflow_id=$workflow_id" >> $GITHUB_OUTPUT
+          echo "workflow_url=$workflow_url" >> $GITHUB_OUTPUT
+          cat $GITHUB_OUTPUT
 
   slack_notification:
     needs: context
     strategy:
       matrix:
         include:
-          - actor: ${{ github.event.workflow_run.actor.login }}
-            event: 'push'
-            conclusion: 'success'
-            env: 'dev'
-            ref: ${{ github.event.workflow_run.head_commit.id }}
-          - actor: ${{ github.event.workflow_run.actor.login }}
+          # The real message based on the context of the workflow
+          - emoji: ${{ needs.context.outputs.emoji }}
+            actor: ${{ needs.context.outputs.actor }}
+            event: ${{ needs.context.outputs.event }}
+            conclusion: ${{ needs.context.outputs.conclusion }}
+            env: ${{ needs.context.outputs.env }}
+            ref: ${{ needs.context.outputs.ref }}
+            ref_link: ${{ needs.context.outputs.ref_link }}
+            workflow_id: ${{ needs.context.outputs.workflow_id }}
+            workflow_url: ${{ needs.context.outputs.workflow_url }}
+          # No Emoji
+          - emoji: ''
+            actor: ${{ needs.context.outputs.actor }}
+            event: ${{ needs.context.outputs.event }}
+            conclusion: ${{ needs.context.outputs.conclusion }}
+            env: ${{ needs.context.outputs.env }}
+            ref: ${{ needs.context.outputs.ref }}
+            ref_link: ${{ needs.context.outputs.ref_link }}
+            workflow_id: ${{ needs.context.outputs.workflow_id }}
+            workflow_url: ${{ needs.context.outputs.workflow_url }}
+          # Custom Emoji and ref
+          - emoji: ':party_blob:'
+            actor: ${{ github.event.workflow_run.actor.login }}
             event: 'push'
             conclusion: 'failure'
             env: 'dev'
-            ref: ${{ github.event.workflow_run.head_commit.id }}
-          - actor: ${{ github.event.workflow_run.actor.login }}
-            event: 'release'
-            conclusion: 'success'
-            env: 'production'
-            ref: 2025.01.01
-          - actor: ${{ github.event.workflow_run.actor.login }}
-            event: 'release'
-            conclusion: 'failure'
-            env: 'production'
-            ref: 2025.01.01
+            ref: 'It is time to party!'
+            ref_link: ${{ needs.context.outputs.ref_link }}
+            workflow_id: ${{ needs.context.outputs.workflow_id }}
+            workflow_url: ${{ needs.context.outputs.workflow_url }}
 
     runs-on: ubuntu-latest
     steps:
@@ -47,9 +109,12 @@ jobs:
         with:
           slack_token: ${{ secrets.SLACK_TOKEN }}
           slack_channel: ${{ secrets.SLACK_ADDONS_PRODUCTION_CHANNEL }}
+          emoji: ${{ matrix.emoji }}
           actor: ${{ matrix.actor }}
           event: ${{ matrix.event }}
           conclusion: ${{ matrix.conclusion }}
           env: ${{ matrix.env }}
           ref: ${{ matrix.ref }}
-          workflow_id: ${{ github.event.workflow_run.id }}
+          ref_link: ${{ matrix.ref_link }}
+          workflow_id: ${{ matrix.workflow_id }}
+          workflow_url: ${{ matrix.workflow_url }}
