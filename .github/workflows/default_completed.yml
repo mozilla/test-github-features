@@ -46,7 +46,7 @@ jobs:
             ref_link="$repo_url/commit/$sha"
           elif [[ "$event" == "release" ]]; then
             env="production"
-            ref_link="$repo_url/releases/tag/$head_branch"
+            ref_link="$repo_url/releases/tag/$branch"
           fi
 
           if [[ "$conclusion" == "success" ]]; then
@@ -68,39 +68,6 @@ jobs:
 
   slack_notification:
     needs: context
-    strategy:
-      matrix:
-        include:
-          # The real message based on the context of the workflow
-          - emoji: ${{ needs.context.outputs.emoji }}
-            actor: ${{ needs.context.outputs.actor }}
-            event: ${{ needs.context.outputs.event }}
-            conclusion: ${{ needs.context.outputs.conclusion }}
-            env: ${{ needs.context.outputs.env }}
-            ref: ${{ needs.context.outputs.ref }}
-            ref_link: ${{ needs.context.outputs.ref_link }}
-            workflow_id: ${{ needs.context.outputs.workflow_id }}
-            workflow_url: ${{ needs.context.outputs.workflow_url }}
-          # No Emoji
-          - emoji: ''
-            actor: ${{ needs.context.outputs.actor }}
-            event: ${{ needs.context.outputs.event }}
-            conclusion: ${{ needs.context.outputs.conclusion }}
-            env: ${{ needs.context.outputs.env }}
-            ref: ${{ needs.context.outputs.ref }}
-            ref_link: ${{ needs.context.outputs.ref_link }}
-            workflow_id: ${{ needs.context.outputs.workflow_id }}
-            workflow_url: ${{ needs.context.outputs.workflow_url }}
-          # Custom Emoji and ref
-          - emoji: ':party_blob:'
-            actor: ${{ github.event.workflow_run.actor.login }}
-            event: 'push'
-            conclusion: 'failure'
-            env: 'dev'
-            ref: 'It is time to party!'
-            ref_link: ${{ needs.context.outputs.ref_link }}
-            workflow_id: ${{ needs.context.outputs.workflow_id }}
-            workflow_url: ${{ needs.context.outputs.workflow_url }}
 
     runs-on: ubuntu-latest
     steps:
@@ -109,12 +76,12 @@ jobs:
         with:
           slack_token: ${{ secrets.SLACK_TOKEN }}
           slack_channel: ${{ secrets.SLACK_ADDONS_PRODUCTION_CHANNEL }}
-          emoji: ${{ matrix.emoji }}
-          actor: ${{ matrix.actor }}
-          event: ${{ matrix.event }}
-          conclusion: ${{ matrix.conclusion }}
-          env: ${{ matrix.env }}
-          ref: ${{ matrix.ref }}
-          ref_link: ${{ matrix.ref_link }}
-          workflow_id: ${{ matrix.workflow_id }}
-          workflow_url: ${{ matrix.workflow_url }}
+          emoji: ${{ needs.context.outputs.emoji }}
+          actor: ${{ needs.context.outputs.actor }}
+          event: ${{ needs.context.outputs.event }}
+          conclusion: ${{ needs.context.outputs.conclusion }}
+          env: ${{ needs.context.outputs.env }}
+          ref: ${{ needs.context.outputs.ref }}
+          ref_link: ${{ needs.context.outputs.ref_link }}
+          workflow_id: ${{ needs.context.outputs.workflow_id }}
+          workflow_url: ${{ needs.context.outputs.workflow_url }}
