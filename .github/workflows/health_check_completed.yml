@@ -1,0 +1,87 @@
+name: Health Check Completed
+
+on:
+  workflow_run:
+    workflows: Health Check
+    types: [completed]
+
+jobs:
+  health_check_notification:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download metadata artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ vars.health_check_artifact }}
+          path: ${{ vars.health_check_file }}
+          run-id: ${{ github.event.workflow_run.id }}
+
+      - name: Check if we should send a notification
+        id: check
+        shell: bash
+        run: |
+          current_time=$(date -d "${{ github.event.workflow_run.created_at }}" +%s)
+          current_hour=$(date -d "${{ github.event.workflow_run.created_at }}" +%H)
+          current_status="${{ github.event.workflow_run.conclusion }}"
+
+          last_workflow_run=$(gh run list \
+            --status completed \
+            --limit 1 \
+            --event ${{ github.event.workflow_run.event }} \
+            --workflow ${{ github.event.workflow_run.name }} \
+            --json conclusion,createdAt \
+            --jq '.[0]'
+          )
+          last_time=$(echo "$last_workflow_run" | jq -r '.createdAt' | date -d -%s)
+          last_status=$(echo "$last_workflow_run" | jq -r '.conclusion')
+
+          result="skip"
+          # If the current workflow is failing, notify failure
+          if [[ "$current_status" == "failure" ]]; then
+            result="failure"
+          # If the current workflow is success...
+          elif [[ "$current_status" == "success" ]]; then
+            # if the last workflow was a failure, notify recovery
+            if [[ "$last_status" == "failure" ]]; then
+              result="recovery"
+            # if the last notification was >24 hours ago and the current hour is 11, notify normal
+            elif [[ "$(current_time - last_time)" -gt 86400 && "$current_hour" == 11 ]]; then
+              result="normal"
+            fi
+          fi
+
+          echo "result=${result}" >> $GITHUB_OUTPUT
+          cat $GITHUB_OUTPUT
+
+      - name: Create message blocks
+        if: steps.check.outputs.result != 'skip'
+        id: blocks
+        shell: bash
+        run: |
+          # Create the message blocks file
+          health_check_blocks_file="health_check_blocks.json"
+          ./scripts/health_check_blocks.py \
+          --input ${{ vars.health_check_file }} \
+          --output $health_check_blocks_file
+          # Multiline output needs to use a delimiter to be passed to
+          # the GITHUB_OUTPUT file.
+          blocks=$(cat $health_check_blocks_file)
+          echo "blocks<<EOF"$'\n'$blocks$'\n'EOF >> $GITHUB_OUTPUT
+          cat $GITHUB_OUTPUT
+
+      - uses: mozilla/addons/.github/actions/slack@main
+        if: steps.check.outputs.result == 'true'
+        with:
+          slack_token: ${{ secrets.SLACK_TOKEN }}
+          payload: |
+            {
+              "channel": "${{ secrets.SLACK_ADDONS_PRODUCTION_CHANNEL }}",
+              "blocks": ${{ toJson(steps.blocks.outputs.blocks) }},
+              # Don't unfurl links or media
+              "unfurl_links": false,
+              "unfurl_media": false,
+            }
+
+
+

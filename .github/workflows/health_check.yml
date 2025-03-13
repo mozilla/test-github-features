@@ -1,0 +1,106 @@
+name: Health Check
+
+on:
+  # Run the workflow test on push events
+  push:
+  # Run the main workflow on workflow_dispatch or schedule
+  workflow_dispatch:
+  schedule:
+    # Every 5 minutes
+    - cron: '*/5 * * * *'
+
+jobs:
+  health_check:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        environment: ${{fromJson(github.event_name == 'push' && '["local"]' || '["dev","stage","prod"]')}}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Fake health check
+        id: health_check
+        shell: bash
+        run: |
+          cat <<EOF > ${{ vars.health_check_file }}
+          {
+            "version": {
+              "url": "http://nginx/__version__",
+              "data": {
+                "target": "development",
+                "version": "",
+                "source": "https://github.com/mozilla/addons-server",
+                "commit": "",
+                "build": "",
+                "python": "3.12",
+                "django": "4.2",
+                "addons-linter": "7.8.0"
+              }
+            },
+            "heartbeat": {
+              "url": "http://nginx/__heartbeat__",
+              "data": {
+                "memcache": {
+                  "state": true,
+                  "status": ""
+                },
+                "libraries": {
+                  "state": true,
+                  "status": ""
+                },
+                "elastic": {
+                  "state": true,
+                  "status": ""
+                },
+                "path": {
+                  "state": false,
+                  "status": "Everyone has their own path to walk. THis path is not your path"
+                },
+                "database": {
+                  "state": true,
+                  "status": ""
+                }
+              }
+            },
+            "monitors": {
+              "url": "http://nginx/services/__heartbeat__",
+              "data": {
+                "rabbitmq": {
+                  "state": true,
+                  "status": ""
+                },
+                "signer": {
+                  "state": true,
+                  "status": ""
+                },
+                "remotesettings": {
+                  "state": false,
+                  "status": "The remote is out of batteries. Please try turning on the television using the button on the console."
+                },
+                "cinder": {
+                  "state": false,
+                  "status": "Failed to connect to cinder server: Http is conflarbulated due to overriding falpark"
+                }
+              }
+            }
+          }
+          EOF
+
+      - name: Upload metadata artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ vars.health_check_artifact }}
+          path: ${{ vars.health_check_file }}
+          retention-days: 90
+
+      - name: Exit
+        shell: bash
+        run: |
+          if [[ "${{ steps.health_check.outcome }}" == "failure" ]]; then
+            exit 1
+          fi
+
+
+
