@@ -1,85 +1,129 @@
 name: 'Docker Build'
 description: 'Builds docker image'
 inputs:
-  push:
-    required: true
-    description: "Build and push image to registry (cannot be used together with load)"
-    default: "false"
-  password:
-    required: false
-    description: "Password for the registry"
-  username:
-    required: false
-    description: "Username for the registry"
   node_env:
     required: false
     description: "Node environment"
     default: "production"
+  latest:
+    required: false
+    description: "Tag latest version"
+    default: "false"
+  target:
+    required: false
+    description: "Docker stage to target"
+    default: "final"
+  push:
+    required: false
+    description: "Should image be pushed to registries"
+    default: "false"
 
 outputs:
-  tags:
-    description: "The Docker tags for the image"
-    value: ${{ steps.meta.outputs.tags }}
-  version:
-    description: "The version for the image"
-    value: ${{ steps.meta.outputs.version }}
   image:
     description: "The Docker image"
     value: ${{ steps.image.outputs.image }}
-  image_version:
+  version:
+    description: "The version for the image"
+    value: ${{ steps.meta.outputs.version }}
+  digest:
+    description: "The build digest for the image"
+    value: ${{ steps.build.outputs.digest }}
+  tag:
     description: "Combines image and version to a valid image tag"
-    value: ${{ steps.image.outputs.image }}:${{ steps.meta.outputs.version }}
+    value: ${{ steps.tag.outputs.tag }}
 
 runs:
   using: "composite"
   steps:
-    # Setup docker to build for multiple architectures
-    - name: Set up QEMU
-      uses: docker/setup-qemu-action@v3
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v1
-      with:
-        version: latest
-        buildkitd-flags: --debug
-
-    # Login to a registry to push the image
     - name: Login to Container Registry
-      # Only login if we are pushing the image
-      if: ${{ inputs.push == 'true' }}
+      if: inputs.push == 'true'
       uses: docker/login-action@v3
       with:
         registry: ghcr.io
         username: ${{ inputs.username }}
         password: ${{ inputs.password }}
 
+    - name: Set up QEMU
+      uses: docker/setup-qemu-action@v3
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v1
+      with:
+        version: latest
+        buildkitd-flags: --debug
+
     - name: Docker Image
       id: image
       shell: bash
       run: |
-        echo "image=ghcr.io/mozilla/test-github-features" >> $GITHUB_OUTPUT
+        echo "image=${{ github.repository }}" >> $GITHUB_OUTPUT
+        cat $GITHUB_OUTPUT
 
     - name: Docker meta
       id: meta
       uses: docker/metadata-action@v5
       with:
-        images: ${{ steps.image.outputs.image }}
+        images: |
+          ghcr.io/${{ steps.image.outputs.image }}
+        flavor: |
+          suffix=-next,onlatest=true
+          latest=${{ inputs.latest == 'true' }}
         tags: |
-          type=raw,value=latest,enable={{is_default_branch}}
-          type=raw,value=staging,enable=${{ github.event_name == 'merge_group' }}
           type=ref,event=pr
-          type=sha
+          type=ref,event=branch
+          type=ref,event=tag
+
+    - name: Docker tag
+      id: tag
+      shell: bash
+      run: |
+        # Extract metadata output json
+        cat <<EOF > meta.json
+        ${{ steps.meta.outputs.json }}
+        EOF
+
+        echo "tag=$(cat meta.json | jq -r '.tags[0]')" >> $GITHUB_OUTPUT
+        cat $GITHUB_OUTPUT
+
+    - name: Tar file
+      id: tar
+      shell: bash
+      # image.tar is the name of the compressed image file
+      # This should be kept in sync with ./.github/actions/run/action.yml
+      # That loads the image from this file
+      run: |
+        echo "path=/tmp/image.tar" >> $GITHUB_OUTPUT
 
     - name: Build Image
-      uses: docker/build-push-action@v5
+      id: build
+      uses: docker/build-push-action@v6
       with:
-        context: .
         platforms: linux/amd64
-        pull: true
-        push: ${{ inputs.push }}
-        load: ${{ inputs.push == 'false' }}
+        # Inject metadata produced earlier
         tags: ${{ steps.meta.outputs.tags }}
-        cache-from: type=gha
-        cache-to: type=gha,mode=max
-        build-args: |
-          VERSION=${{ steps.meta.outputs.tags }}
-          NODE_ENV=${{ inputs.node_env }}
+        labels: ${{ steps.meta.outputs.labels }}
+        annotations: ${{ steps.meta.outputs.annotations }}
+        # Output image to a local tar file to be uploaded
+        # Also push to registry when appropriate
+        outputs: |
+          type=docker,dest=${{ steps.tar.outputs.path }}
+          type=image,name=${{ steps.tag.outputs.tag }},push=${{ inputs.push }}
+        # Target a specified stage
+        target: ${{ inputs.target }}
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4
+      with:
+        # The artifact name should be kept in sync with
+        # ./.github/actions/run/action.yml which downloads the artifact
+        name: docker-image
+        path: ${{ steps.tar.outputs.path }}
+        retention-days: 1
+        compression-level: 9
+        overwrite: true
+
+    - name: Load Docker image
+      shell: bash
+      run: |
+        # Load the Docker image
+        docker load -i /tmp/image.tar
