@@ -1,4 +1,4 @@
-name: Worker
+name: Worker (fork)
 
 on:
   workflow_call:
